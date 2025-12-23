@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hadamard Gate - Creating Superposition</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle { text-align: center; color: #888; margin-bottom: 30px; font-size: 1.2em; }
+        .section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .section h2 { color: #00d4ff; margin-bottom: 20px; font-size: 1.8em; }
+        .visualization-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-top: 20px;
+        }
+        .viz-card {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+        }
+        .viz-card h3 { color: #7b2cbf; margin-bottom: 15px; }
+        canvas { border-radius: 10px; background: rgba(0,0,0,0.5); }
+        .equation {
+            font-family: 'Times New Roman', serif;
+            font-size: 1.5em;
+            text-align: center;
+            padding: 20px;
+            background: rgba(0,212,255,0.1);
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .explanation {
+            background: rgba(123,44,191,0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            line-height: 1.8;
+        }
+        .code-block {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        .code-block .keyword { color: #569cd6; }
+        .code-block .function { color: #dcdcaa; }
+        .code-block .comment { color: #6a9955; }
+        .code-block .number { color: #b5cea8; }
+        .matrix-display {
+            font-family: 'Courier New', monospace;
+            font-size: 1.3em;
+            background: rgba(0,212,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+            margin: 10px;
+        }
+        button {
+            background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,212,255,0.4);
+        }
+        .nav-buttons { display: flex; justify-content: space-between; margin-top: 30px; }
+        .nav-btn {
+            background: rgba(255,255,255,0.1);
+            padding: 15px 30px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #00d4ff;
+            transition: all 0.3s ease;
+        }
+        .nav-btn:hover { background: rgba(0,212,255,0.2); }
+        .gate-symbol {
+            font-size: 4em;
+            font-weight: bold;
+            color: #ffd93d;
+            margin: 10px 0;
+        }
+        .transformation-arrow {
+            font-size: 2em;
+            color: #ff6b6b;
+            margin: 0 20px;
+        }
+        .state-transform {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .state-box {
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Hadamard Gate (H)</h1>
+        <p class="subtitle">The Gateway to Quantum Superposition</p>
+
+        <div class="section">
+            <h2>What is the Hadamard Gate?</h2>
+            <p class="explanation">
+                The <strong>Hadamard gate</strong> is arguably the most important single-qubit gate in quantum computing.
+                It creates an equal superposition from a basis state, putting the qubit into a state where measuring 0 or 1 
+                is equally likely. It's the key to quantum parallelism - the ability to process multiple states simultaneously.
+            </p>
+            
+            <div style="text-align: center;">
+                <div class="gate-symbol">H</div>
+                <div class="matrix-display">
+                    H = <sup>1</sup>/<sub>√2</sub> [1 &nbsp; 1]
+                    <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[1 -1]
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Hadamard Transformations</h2>
+            <div class="visualization-grid">
+                <div class="viz-card">
+                    <h3>H|0⟩ = |+⟩</h3>
+                    <div class="state-transform">
+                        <div class="state-box" style="background: rgba(0,212,255,0.3);">|0⟩</div>
+                        <span class="transformation-arrow">→ H →</span>
+                        <div class="state-box" style="background: rgba(255,217,61,0.3);">|+⟩</div>
+                    </div>
+                    <div class="equation" style="font-size: 1.2em;">
+                        H|0⟩ = <sup>1</sup>/<sub>√2</sub>(|0⟩ + |1⟩) = |+⟩
+                    </div>
+                    <canvas id="h0Canvas" width="300" height="200"></canvas>
+                </div>
+                
+                <div class="viz-card">
+                    <h3>H|1⟩ = |-⟩</h3>
+                    <div class="state-transform">
+                        <div class="state-box" style="background: rgba(123,44,191,0.3);">|1⟩</div>
+                        <span class="transformation-arrow">→ H →</span>
+                        <div class="state-box" style="background: rgba(255,107,107,0.3);">|-⟩</div>
+                    </div>
+                    <div class="equation" style="font-size: 1.2em;">
+                        H|1⟩ = <sup>1</sup>/<sub>√2</sub>(|0⟩ - |1⟩) = |-⟩
+                    </div>
+                    <canvas id="h1Canvas" width="300" height="200"></canvas>
+                </div>
+            </div>
+
+            <div class="visualization-grid" style="margin-top: 20px;">
+                <div class="viz-card">
+                    <h3>H|+⟩ = |0⟩</h3>
+                    <div class="state-transform">
+                        <div class="state-box" style="background: rgba(255,217,61,0.3);">|+⟩</div>
+                        <span class="transformation-arrow">→ H →</span>
+                        <div class="state-box" style="background: rgba(0,212,255,0.3);">|0⟩</div>
+                    </div>
+                    <p style="color: #aaa; margin-top: 10px;">
+                        Hadamard is its own inverse: H² = I
+                    </p>
+                </div>
+                
+                <div class="viz-card">
+                    <h3>H|-⟩ = |1⟩</h3>
+                    <div class="state-transform">
+                        <div class="state-box" style="background: rgba(255,107,107,0.3);">|-⟩</div>
+                        <span class="transformation-arrow">→ H →</span>
+                        <div class="state-box" style="background: rgba(123,44,191,0.3);">|1⟩</div>
+                    </div>
+                    <p style="color: #aaa; margin-top: 10px;">
+                        Applying H twice returns to original state
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Bloch Sphere Visualization</h2>
+            <div class="visualization-grid">
+                <div class="viz-card">
+                    <h3>Interactive Hadamard</h3>
+                    <canvas id="blochCanvas" width="400" height="400"></canvas>
+                    <div style="margin-top: 15px;">
+                        <button onclick="applyHadamard()">Apply H Gate</button>
+                        <button onclick="resetToZero()">Reset to |0⟩</button>
+                        <button onclick="resetToOne()">Reset to |1⟩</button>
+                    </div>
+                    <div id="stateDisplay" style="margin-top: 15px; font-size: 1.2em;"></div>
+                </div>
+                
+                <div class="viz-card">
+                    <h3>Geometric Interpretation</h3>
+                    <canvas id="geometryCanvas" width="400" height="300"></canvas>
+                    <p style="color: #aaa; margin-top: 15px;">
+                        H is a rotation of π around the axis (X+Z)/√2<br>
+                        It maps Z-axis to X-axis and vice versa
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Why Hadamard is Special</h2>
+            <div class="visualization-grid">
+                <div class="viz-card">
+                    <h3>Creates Quantum Parallelism</h3>
+                    <canvas id="parallelismCanvas" width="350" height="250"></canvas>
+                    <p style="color: #aaa; margin-top: 10px;">
+                        H⊗H⊗...⊗H on n qubits creates superposition of all 2ⁿ states
+                    </p>
+                </div>
+                
+                <div class="viz-card">
+                    <h3>Key Properties</h3>
+                    <div class="explanation" style="text-align: left;">
+                        <p><strong>Self-inverse:</strong> H² = I (H = H⁻¹)</p>
+                        <p style="margin-top: 10px;"><strong>Hermitian:</strong> H† = H</p>
+                        <p style="margin-top: 10px;"><strong>Unitary:</strong> H†H = I</p>
+                        <p style="margin-top: 10px;"><strong>Relation to Paulis:</strong> H = (X + Z)/√2</p>
+                        <p style="margin-top: 10px;"><strong>Conjugation:</strong> HXH = Z, HZH = X</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Hadamard in Deutsch-Jozsa</h2>
+            <p class="explanation">
+                In the Deutsch-Jozsa algorithm, Hadamard gates are applied at the beginning to create a superposition 
+                of all possible inputs, and at the end to interfere the amplitudes. This is the pattern used in many 
+                quantum algorithms: <strong>Superposition → Oracle → Interference</strong>
+            </p>
+            
+            <canvas id="djCanvas" width="800" height="200" style="width: 100%; max-width: 800px; display: block; margin: 20px auto;"></canvas>
+        </div>
+
+        <div class="section">
+            <h2>Python Implementation</h2>
+            <div class="code-block">
+<span class="keyword">import</span> numpy <span class="keyword">as</span> np
+
+<span class="comment"># Define Hadamard gate</span>
+H = (<span class="number">1</span>/np.sqrt(<span class="number">2</span>)) * np.array([[<span class="number">1</span>,  <span class="number">1</span>],
+                               [<span class="number">1</span>, -<span class="number">1</span>]], dtype=<span class="keyword">complex</span>)
+
+<span class="comment"># Define basis states</span>
+ket0 = np.array([[<span class="number">1</span>], [<span class="number">0</span>]], dtype=<span class="keyword">complex</span>)
+ket1 = np.array([[<span class="number">0</span>], [<span class="number">1</span>]], dtype=<span class="keyword">complex</span>)
+
+<span class="comment"># Apply H to |0⟩ → |+⟩</span>
+psi = H @ ket0
+<span class="function">print</span>(<span class="string">"H|0⟩ ="</span>, psi.flatten())
+<span class="comment"># Output: [0.707 0.707] = (|0⟩+|1⟩)/√2</span>
+
+<span class="comment"># Apply H to |1⟩ → |-⟩</span>
+psi = H @ ket1
+<span class="function">print</span>(<span class="string">"H|1⟩ ="</span>, psi.flatten())
+<span class="comment"># Output: [0.707 -0.707] = (|0⟩-|1⟩)/√2</span>
+
+<span class="comment"># Verify H² = I</span>
+I = np.eye(<span class="number">2</span>, dtype=<span class="keyword">complex</span>)
+<span class="function">print</span>(<span class="string">"H² = I?"</span>, np.allclose(H @ H, I))  <span class="comment"># True</span>
+
+<span class="comment"># Apply H twice to |0⟩ → back to |0⟩</span>
+psi = H @ H @ ket0
+<span class="function">print</span>(<span class="string">"HH|0⟩ ="</span>, psi.flatten())
+<span class="comment"># Output: [1 0] = |0⟩</span>
+
+<span class="comment"># Multi-qubit Hadamard: H⊗H on |00⟩</span>
+H2 = np.kron(H, H)
+ket00 = np.kron(ket0, ket0)
+psi = H2 @ ket00
+<span class="function">print</span>(<span class="string">"(H⊗H)|00⟩ ="</span>, psi.flatten())
+<span class="comment"># Output: [0.5 0.5 0.5 0.5] = (|00⟩+|01⟩+|10⟩+|11⟩)/2</span>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <a href="01_pauli_gates.html" class="nav-btn">← Previous: Pauli Gates</a>
+            <a href="../04_evaluation/01_normalization.html" class="nav-btn">Next: Normalization →</a>
+        </div>
+    </div>
+
+    <script>
+        let currentTheta = 0;
+        let currentPhi = 0;
+        let animating = false;
+
+        function drawProbBars(canvasId, prob0, prob1, label0, label1) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 300, 200);
+
+            const barWidth = 80;
+            const maxHeight = 150;
+            const startY = 180;
+
+            // |0⟩ bar
+            const height0 = prob0 * maxHeight;
+            const gradient0 = ctx.createLinearGradient(0, startY - height0, 0, startY);
+            gradient0.addColorStop(0, '#00d4ff');
+            gradient0.addColorStop(1, '#0099cc');
+            ctx.fillStyle = gradient0;
+            ctx.fillRect(50, startY - height0, barWidth, height0);
+
+            // |1⟩ bar
+            const height1 = Math.abs(prob1) * maxHeight;
+            const gradient1 = ctx.createLinearGradient(0, startY - height1, 0, startY);
+            gradient1.addColorStop(0, prob1 >= 0 ? '#7b2cbf' : '#ff6b6b');
+            gradient1.addColorStop(1, prob1 >= 0 ? '#5a1d8f' : '#cc5555');
+            ctx.fillStyle = gradient1;
+            ctx.fillRect(170, startY - height1, barWidth, height1);
+
+            // Labels
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Arial';
+            ctx.fillText(label0, 75, 195);
+            ctx.fillText(label1, 195, 195);
+
+            // Values
+            ctx.font = '12px Arial';
+            ctx.fillStyle = '#00d4ff';
+            ctx.fillText(prob0.toFixed(3), 70, startY - height0 - 5);
+            ctx.fillStyle = prob1 >= 0 ? '#7b2cbf' : '#ff6b6b';
+            ctx.fillText(prob1.toFixed(3), 190, startY - height1 - 5);
+        }
+
+        function drawBlochSphere() {
+            const canvas = document.getElementById('blochCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 400, 400);
+
+            const cx = 200, cy = 200, r = 150;
+
+            // Draw sphere
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw equator
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, r, r * 0.3, 0, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw meridian
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, r * 0.3, r, 0, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw axes
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - r - 20);
+            ctx.lineTo(cx, cy + r + 20);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(cx - r - 20, cy);
+            ctx.lineTo(cx + r + 20, cy);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Labels
+            ctx.fillStyle = '#00d4ff';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText('|0⟩', cx + 10, cy - r - 5);
+            ctx.fillStyle = '#7b2cbf';
+            ctx.fillText('|1⟩', cx + 10, cy + r + 15);
+            ctx.fillStyle = '#ffd93d';
+            ctx.fillText('|+⟩', cx + r + 5, cy + 5);
+            ctx.fillStyle = '#ff6b6b';
+            ctx.fillText('|-⟩', cx - r - 25, cy + 5);
+
+            // Draw state vector
+            const z = r * Math.cos(currentTheta);
+            const x = r * Math.sin(currentTheta) * Math.cos(currentPhi);
+
+            const px = cx + x;
+            const py = cy - z;
+
+            ctx.strokeStyle = '#ff6b6b';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(px, py);
+            ctx.stroke();
+
+            ctx.fillStyle = '#ff6b6b';
+            ctx.beginPath();
+            ctx.arc(px, py, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Glow
+            const gradient = ctx.createRadialGradient(px, py, 0, px, py, 15);
+            gradient.addColorStop(0, 'rgba(255,107,107,0.8)');
+            gradient.addColorStop(1, 'rgba(255,107,107,0)');
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(px, py, 15, 0, Math.PI * 2);
+            ctx.fill();
+
+            updateStateDisplay();
+        }
+
+        function applyHadamard() {
+            if (animating) return;
+            animating = true;
+
+            const startTheta = currentTheta;
+            const startPhi = currentPhi;
+            let progress = 0;
+
+            // Hadamard rotates around (X+Z)/√2 axis by π
+            function animate() {
+                progress += 0.03;
+
+                // Simplified animation: rotate from current to target
+                if (Math.abs(startTheta) < 0.1 && Math.abs(startPhi) < 0.1) {
+                    // |0⟩ → |+⟩
+                    currentTheta = progress * Math.PI / 2;
+                    currentPhi = 0;
+                } else if (Math.abs(startTheta - Math.PI) < 0.1) {
+                    // |1⟩ → |-⟩
+                    currentTheta = Math.PI - progress * Math.PI / 2;
+                    currentPhi = Math.PI;
+                } else if (Math.abs(startTheta - Math.PI/2) < 0.1 && Math.abs(startPhi) < 0.1) {
+                    // |+⟩ → |0⟩
+                    currentTheta = Math.PI/2 - progress * Math.PI / 2;
+                    currentPhi = 0;
+                } else if (Math.abs(startTheta - Math.PI/2) < 0.1 && Math.abs(startPhi - Math.PI) < 0.1) {
+                    // |-⟩ → |1⟩
+                    currentTheta = Math.PI/2 + progress * Math.PI / 2;
+                    currentPhi = progress < 0.5 ? Math.PI : 0;
+                } else {
+                    // General case
+                    currentTheta = startTheta + progress * (Math.PI/2 - startTheta);
+                }
+
+                drawBlochSphere();
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    animating = false;
+                }
+            }
+            animate();
+        }
+
+        function resetToZero() {
+            currentTheta = 0;
+            currentPhi = 0;
+            drawBlochSphere();
+        }
+
+        function resetToOne() {
+            currentTheta = Math.PI;
+            currentPhi = 0;
+            drawBlochSphere();
+        }
+
+        function updateStateDisplay() {
+            let state = '';
+            if (currentTheta < 0.1) state = '|0⟩';
+            else if (Math.abs(currentTheta - Math.PI) < 0.1) state = '|1⟩';
+            else if (Math.abs(currentTheta - Math.PI/2) < 0.1 && currentPhi < 0.1) state = '|+⟩';
+            else if (Math.abs(currentTheta - Math.PI/2) < 0.1 && Math.abs(currentPhi - Math.PI) < 0.1) state = '|-⟩';
+            else state = '|ψ⟩';
+            
+            document.getElementById('stateDisplay').innerHTML = `Current state: <strong>${state}</strong>`;
+        }
+
+        function drawGeometry() {
+            const canvas = document.getElementById('geometryCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 400, 300);
+
+            const cx = 200, cy = 150, r = 100;
+
+            // Draw coordinate system
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.lineWidth = 2;
+            
+            // Z axis (vertical)
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - r - 20);
+            ctx.lineTo(cx, cy + r + 20);
+            ctx.stroke();
+
+            // X axis (horizontal)
+            ctx.beginPath();
+            ctx.moveTo(cx - r - 20, cy);
+            ctx.lineTo(cx + r + 20, cy);
+            ctx.stroke();
+
+            // Draw Hadamard rotation axis (X+Z)/√2
+            ctx.strokeStyle = '#ffd93d';
+            ctx.lineWidth = 3;
+            const axisLen = r + 30;
+            ctx.beginPath();
+            ctx.moveTo(cx - axisLen/Math.sqrt(2), cy + axisLen/Math.sqrt(2));
+            ctx.lineTo(cx + axisLen/Math.sqrt(2), cy - axisLen/Math.sqrt(2));
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Arial';
+            ctx.fillText('Z', cx + 10, cy - r - 25);
+            ctx.fillText('X', cx + r + 25, cy + 5);
+            ctx.fillStyle = '#ffd93d';
+            ctx.fillText('H axis', cx + 60, cy - 60);
+
+            // Draw rotation arrow
+            ctx.strokeStyle = '#ff6b6b';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx + 30, cy - 30, 25, -Math.PI/4, Math.PI * 0.75);
+            ctx.stroke();
+            
+            // Arrow head
+            ctx.fillStyle = '#ff6b6b';
+            ctx.beginPath();
+            ctx.moveTo(cx + 5, cy - 30);
+            ctx.lineTo(cx + 15, cy - 25);
+            ctx.lineTo(cx + 10, cy - 40);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = '#ff6b6b';
+            ctx.fillText('π rotation', cx + 60, cy - 20);
+        }
+
+        function drawParallelism() {
+            const canvas = document.getElementById('parallelismCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 350, 250);
+
+            // Draw n=1 qubit
+            ctx.fillStyle = '#00d4ff';
+            ctx.font = '14px Arial';
+            ctx.fillText('n=1: H|0⟩ = |+⟩', 20, 30);
+            
+            // Draw bars for 2 states
+            ctx.fillStyle = 'rgba(0,212,255,0.5)';
+            ctx.fillRect(20, 40, 30, 40);
+            ctx.fillRect(60, 40, 30, 40);
+            ctx.fillStyle = '#fff';
+            ctx.font = '10px Arial';
+            ctx.fillText('|0⟩', 25, 95);
+            ctx.fillText('|1⟩', 65, 95);
+
+            // Draw n=2 qubits
+            ctx.fillStyle = '#7b2cbf';
+            ctx.font = '14px Arial';
+            ctx.fillText('n=2: (H⊗H)|00⟩', 120, 30);
+            
+            ctx.fillStyle = 'rgba(123,44,191,0.5)';
+            for (let i = 0; i < 4; i++) {
+                ctx.fillRect(120 + i * 35, 40, 25, 40);
+            }
+            ctx.fillStyle = '#fff';
+            ctx.font = '9px Arial';
+            ctx.fillText('|00⟩', 122, 95);
+            ctx.fillText('|01⟩', 157, 95);
+            ctx.fillText('|10⟩', 192, 95);
+            ctx.fillText('|11⟩', 227, 95);
+
+            // Draw n=3 qubits
+            ctx.fillStyle = '#ff6b6b';
+            ctx.font = '14px Arial';
+            ctx.fillText('n=3: H⊗³|000⟩ → 8 states!', 20, 130);
+            
+            ctx.fillStyle = 'rgba(255,107,107,0.5)';
+            for (let i = 0; i < 8; i++) {
+                ctx.fillRect(20 + i * 38, 140, 30, 40);
+            }
+
+            // Formula
+            ctx.fillStyle = '#ffd93d';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText('H⊗ⁿ|0⟩⊗ⁿ = Σ|x⟩ / √2ⁿ', 80, 220);
+            ctx.font = '12px Arial';
+            ctx.fillText('(sum over all 2ⁿ basis states)', 90, 240);
+        }
+
+        function drawDJCircuit() {
+            const canvas = document.getElementById('djCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 800, 200);
+
+            // Draw qubit lines
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.lineWidth = 2;
+            for (let i = 0; i < 3; i++) {
+                ctx.beginPath();
+                ctx.moveTo(50, 50 + i * 50);
+                ctx.lineTo(750, 50 + i * 50);
+                ctx.stroke();
+            }
+
+            // Initial states
+            ctx.fillStyle = '#fff';
+            ctx.font = '16px Arial';
+            ctx.fillText('|0⟩', 20, 55);
+            ctx.fillText('|0⟩', 20, 105);
+            ctx.fillText('|1⟩', 20, 155);
+
+            // First H gates
+            ctx.fillStyle = '#ffd93d';
+            ctx.fillRect(100, 35, 40, 30);
+            ctx.fillRect(100, 85, 40, 30);
+            ctx.fillRect(100, 135, 40, 30);
+            ctx.fillStyle = '#000';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText('H', 112, 57);
+            ctx.fillText('H', 112, 107);
+            ctx.fillText('H', 112, 157);
+
+            // Oracle
+            ctx.fillStyle = '#7b2cbf';
+            ctx.fillRect(250, 35, 100, 130);
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 20px Arial';
+            ctx.fillText('Uf', 285, 105);
+
+            // Second H gates (on input qubits only)
+            ctx.fillStyle = '#ffd93d';
+            ctx.fillRect(450, 35, 40, 30);
+            ctx.fillRect(450, 85, 40, 30);
+            ctx.fillStyle = '#000';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText('H', 462, 57);
+            ctx.fillText('H', 462, 107);
+
+            // Measurement
+            ctx.strokeStyle = '#00d4ff';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(550, 35, 40, 30);
+            ctx.strokeRect(550, 85, 40, 30);
+            ctx.fillStyle = '#00d4ff';
+            ctx.beginPath();
+            ctx.arc(570, 50, 10, Math.PI, 0);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(570, 50);
+            ctx.lineTo(575, 40);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(570, 100, 10, Math.PI, 0);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(570, 100);
+            ctx.lineTo(575, 90);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#888';
+            ctx.font = '12px Arial';
+            ctx.fillText('Superposition', 85, 185);
+            ctx.fillText('Oracle', 275, 185);
+            ctx.fillText('Interference', 440, 185);
+            ctx.fillText('Measure', 545, 185);
+        }
+
+        // Initialize
+        drawProbBars('h0Canvas', 1/Math.sqrt(2), 1/Math.sqrt(2), '|0⟩', '|1⟩');
+        drawProbBars('h1Canvas', 1/Math.sqrt(2), -1/Math.sqrt(2), '|0⟩', '|1⟩');
+        drawBlochSphere();
+        drawGeometry();
+        drawParallelism();
+        drawDJCircuit();
+    </script>
+</body>
+</html>

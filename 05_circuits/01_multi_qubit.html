@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Qubit Systems - Quantum Circuits</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle { text-align: center; color: #888; margin-bottom: 30px; font-size: 1.2em; }
+        .section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .section h2 { color: #00d4ff; margin-bottom: 20px; font-size: 1.8em; }
+        .visualization-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-top: 20px;
+        }
+        .viz-card {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+        }
+        .viz-card h3 { color: #7b2cbf; margin-bottom: 15px; }
+        canvas { border-radius: 10px; background: rgba(0,0,0,0.5); }
+        .equation {
+            font-family: 'Times New Roman', serif;
+            font-size: 1.5em;
+            text-align: center;
+            padding: 20px;
+            background: rgba(0,212,255,0.1);
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .explanation {
+            background: rgba(123,44,191,0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            line-height: 1.8;
+        }
+        .code-block {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        .code-block .keyword { color: #569cd6; }
+        .code-block .function { color: #dcdcaa; }
+        .code-block .comment { color: #6a9955; }
+        .code-block .number { color: #b5cea8; }
+        button {
+            background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,212,255,0.4);
+        }
+        .nav-buttons { display: flex; justify-content: space-between; margin-top: 30px; }
+        .nav-btn {
+            background: rgba(255,255,255,0.1);
+            padding: 15px 30px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #00d4ff;
+            transition: all 0.3s ease;
+        }
+        .nav-btn:hover { background: rgba(0,212,255,0.2); }
+        .state-display {
+            font-family: 'Courier New', monospace;
+            font-size: 1.2em;
+            padding: 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Multi-Qubit Systems</h1>
+        <p class="subtitle">Building Quantum Circuits with Multiple Qubits</p>
+
+        <div class="section">
+            <h2>From Single to Multiple Qubits</h2>
+            <p class="explanation">
+                Real quantum computers use multiple qubits working together. The state space grows exponentially: 
+                n qubits have 2ⁿ basis states. A 2-qubit system has 4 basis states (|00⟩, |01⟩, |10⟩, |11⟩), 
+                a 3-qubit system has 8, and so on. This exponential growth is the source of quantum computing's power.
+            </p>
+            
+            <div class="equation">
+                n qubits → 2ⁿ dimensional Hilbert space
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>2-Qubit Basis States</h2>
+            <div class="visualization-grid">
+                <div class="viz-card">
+                    <h3>Computational Basis</h3>
+                    <canvas id="basisCanvas" width="400" height="300"></canvas>
+                    <div class="state-display">
+                        |00⟩ = [1,0,0,0]ᵀ &nbsp; |01⟩ = [0,1,0,0]ᵀ<br>
+                        |10⟩ = [0,0,1,0]ᵀ &nbsp; |11⟩ = [0,0,0,1]ᵀ
+                    </div>
+                </div>
+                
+                <div class="viz-card">
+                    <h3>State Vector Visualization</h3>
+                    <canvas id="stateVecCanvas" width="400" height="300"></canvas>
+                    <div style="margin-top: 15px;">
+                        <button onclick="setState('00')">|00⟩</button>
+                        <button onclick="setState('01')">|01⟩</button>
+                        <button onclick="setState('10')">|10⟩</button>
+                        <button onclick="setState('11')">|11⟩</button>
+                        <button onclick="setState('bell')">Bell</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Quantum Circuit Notation</h2>
+            <div class="viz-card" style="max-width: 800px; margin: 0 auto;">
+                <h3>Reading a Quantum Circuit</h3>
+                <canvas id="circuitCanvas" width="700" height="250"></canvas>
+                <p style="color: #aaa; margin-top: 15px;">
+                    Time flows left to right. Each horizontal line is a qubit.<br>
+                    Boxes represent gates. Vertical lines connect multi-qubit gates.
+                </p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Applying Gates to Specific Qubits</h2>
+            <p class="explanation">
+                To apply a gate to only one qubit in a multi-qubit system, we use tensor products with identity matrices.
+                For example, to apply H to qubit 1 in a 2-qubit system: H⊗I. To apply X to qubit 2: I⊗X.
+            </p>
+            
+            <div class="visualization-grid">
+                <div class="viz-card">
+                    <h3>H ⊗ I (H on qubit 1)</h3>
+                    <canvas id="HICanvas" width="350" height="250"></canvas>
+                    <div class="state-display" id="HIResult">
+                        (H⊗I)|00⟩ = |+0⟩ = (|00⟩+|10⟩)/√2
+                    </div>
+                </div>
+                
+                <div class="viz-card">
+                    <h3>I ⊗ H (H on qubit 2)</h3>
+                    <canvas id="IHCanvas" width="350" height="250"></canvas>
+                    <div class="state-display" id="IHResult">
+                        (I⊗H)|00⟩ = |0+⟩ = (|00⟩+|01⟩)/√2
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Interactive Circuit Builder</h2>
+            <div class="viz-card" style="max-width: 900px; margin: 0 auto;">
+                <h3>Build Your Own Circuit</h3>
+                <div style="margin: 20px 0;">
+                    <strong>Qubit 1:</strong>
+                    <button onclick="addGate(1, 'H')">H</button>
+                    <button onclick="addGate(1, 'X')">X</button>
+                    <button onclick="addGate(1, 'Z')">Z</button>
+                    &nbsp;&nbsp;
+                    <strong>Qubit 2:</strong>
+                    <button onclick="addGate(2, 'H')">H</button>
+                    <button onclick="addGate(2, 'X')">X</button>
+                    <button onclick="addGate(2, 'Z')">Z</button>
+                    &nbsp;&nbsp;
+                    <button onclick="resetCircuit()" style="background: #ff6b6b;">Reset</button>
+                </div>
+                <canvas id="builderCanvas" width="800" height="200"></canvas>
+                <div class="state-display" id="builderState">
+                    Initial state: |00⟩ = [1, 0, 0, 0]
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Python Implementation</h2>
+            <div class="code-block">
+<span class="keyword">import</span> numpy <span class="keyword">as</span> np
+
+<span class="comment"># Define single-qubit gates</span>
+I = np.eye(<span class="number">2</span>, dtype=<span class="keyword">complex</span>)
+H = (<span class="number">1</span>/np.sqrt(<span class="number">2</span>)) * np.array([[<span class="number">1</span>, <span class="number">1</span>], [<span class="number">1</span>, -<span class="number">1</span>]], dtype=<span class="keyword">complex</span>)
+X = np.array([[<span class="number">0</span>, <span class="number">1</span>], [<span class="number">1</span>, <span class="number">0</span>]], dtype=<span class="keyword">complex</span>)
+
+<span class="comment"># Define 2-qubit basis states</span>
+ket0 = np.array([[<span class="number">1</span>], [<span class="number">0</span>]], dtype=<span class="keyword">complex</span>)
+ket1 = np.array([[<span class="number">0</span>], [<span class="number">1</span>]], dtype=<span class="keyword">complex</span>)
+
+ket00 = np.kron(ket0, ket0)  <span class="comment"># |00⟩</span>
+ket01 = np.kron(ket0, ket1)  <span class="comment"># |01⟩</span>
+ket10 = np.kron(ket1, ket0)  <span class="comment"># |10⟩</span>
+ket11 = np.kron(ket1, ket1)  <span class="comment"># |11⟩</span>
+
+<span class="comment"># Apply H to qubit 1 only: H⊗I</span>
+H1 = np.kron(H, I)
+result = H1 @ ket00
+<span class="function">print</span>(<span class="string">"(H⊗I)|00⟩ ="</span>, result.flatten())
+<span class="comment"># Output: [0.707 0 0.707 0] = (|00⟩+|10⟩)/√2</span>
+
+<span class="comment"># Apply H to qubit 2 only: I⊗H</span>
+H2 = np.kron(I, H)
+result = H2 @ ket00
+<span class="function">print</span>(<span class="string">"(I⊗H)|00⟩ ="</span>, result.flatten())
+<span class="comment"># Output: [0.707 0.707 0 0] = (|00⟩+|01⟩)/√2</span>
+
+<span class="comment"># Apply H to both qubits: H⊗H</span>
+HH = np.kron(H, H)
+result = HH @ ket00
+<span class="function">print</span>(<span class="string">"(H⊗H)|00⟩ ="</span>, result.flatten())
+<span class="comment"># Output: [0.5 0.5 0.5 0.5] = (|00⟩+|01⟩+|10⟩+|11⟩)/2</span>
+
+<span class="comment"># Chain of gates: first H on qubit 1, then X on qubit 2</span>
+circuit = np.kron(I, X) @ np.kron(H, I)
+result = circuit @ ket00
+<span class="function">print</span>(<span class="string">"Circuit result:"</span>, result.flatten())
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <a href="../04_evaluation/03_eigenvalues.html" class="nav-btn">← Previous: Eigenvalues</a>
+            <a href="02_oracle_construction.html" class="nav-btn">Next: Oracle Construction →</a>
+        </div>
+    </div>
+
+    <script>
+        let currentState = [1, 0, 0, 0];
+        let circuitGates = [];
+
+        function drawBasis() {
+            const canvas = document.getElementById('basisCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 400, 300);
+
+            const states = ['|00⟩', '|01⟩', '|10⟩', '|11⟩'];
+            const colors = ['#00d4ff', '#7b2cbf', '#ff6b6b', '#ffd93d'];
+            const barWidth = 70;
+            const maxHeight = 200;
+            const startY = 260;
+
+            for (let i = 0; i < 4; i++) {
+                const x = 40 + i * 90;
+                
+                // Draw bar
+                ctx.fillStyle = colors[i];
+                ctx.fillRect(x, startY - maxHeight, barWidth, maxHeight);
+
+                // Label
+                ctx.fillStyle = '#fff';
+                ctx.font = '14px Arial';
+                ctx.fillText(states[i], x + 20, 280);
+                ctx.fillText('1', x + 30, startY - maxHeight - 10);
+            }
+
+            ctx.fillStyle = '#fff';
+            ctx.font = '16px Arial';
+            ctx.fillText('Each basis state is a unit vector', 80, 30);
+        }
+
+        function setState(state) {
+            switch(state) {
+                case '00': currentState = [1, 0, 0, 0]; break;
+                case '01': currentState = [0, 1, 0, 0]; break;
+                case '10': currentState = [0, 0, 1, 0]; break;
+                case '11': currentState = [0, 0, 0, 1]; break;
+                case 'bell': currentState = [1/Math.sqrt(2), 0, 0, 1/Math.sqrt(2)]; break;
+            }
+            drawStateVector();
+        }
+
+        function drawStateVector() {
+            const canvas = document.getElementById('stateVecCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 400, 300);
+
+            const states = ['|00⟩', '|01⟩', '|10⟩', '|11⟩'];
+            const colors = ['#00d4ff', '#7b2cbf', '#ff6b6b', '#ffd93d'];
+            const barWidth = 70;
+            const maxHeight = 200;
+            const startY = 260;
+
+            for (let i = 0; i < 4; i++) {
+                const x = 40 + i * 90;
+                const height = Math.abs(currentState[i]) * maxHeight;
+                
+                // Draw bar
+                ctx.fillStyle = colors[i];
+                ctx.fillRect(x, startY - height, barWidth, height);
+
+                // Label
+                ctx.fillStyle = '#fff';
+                ctx.font = '14px Arial';
+                ctx.fillText(states[i], x + 20, 280);
+                if (Math.abs(currentState[i]) > 0.01) {
+                    ctx.fillText(currentState[i].toFixed(3), x + 15, startY - height - 10);
+                }
+            }
+        }
+
+        function drawCircuitNotation() {
+            const canvas = document.getElementById('circuitCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 700, 250);
+
+            // Draw qubit lines
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.lineWidth = 2;
+            for (let i = 0; i < 2; i++) {
+                ctx.beginPath();
+                ctx.moveTo(50, 80 + i * 80);
+                ctx.lineTo(650, 80 + i * 80);
+                ctx.stroke();
+            }
+
+            // Initial states
+            ctx.fillStyle = '#fff';
+            ctx.font = '16px Arial';
+            ctx.fillText('|0⟩', 20, 85);
+            ctx.fillText('|0⟩', 20, 165);
+
+            // Qubit labels
+            ctx.fillStyle = '#888';
+            ctx.fillText('q₀', 20, 55);
+            ctx.fillText('q₁', 20, 135);
+
+            // H gate on q0
+            ctx.fillStyle = '#ffd93d';
+            ctx.fillRect(100, 60, 50, 40);
+            ctx.fillStyle = '#000';
+            ctx.font = 'bold 18px Arial';
+            ctx.fillText('H', 115, 87);
+
+            // X gate on q1
+            ctx.fillStyle = '#ff6b6b';
+            ctx.fillRect(200, 140, 50, 40);
+            ctx.fillStyle = '#000';
+            ctx.fillText('X', 215, 167);
+
+            // CNOT gate
+            ctx.strokeStyle = '#00d4ff';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(350, 80);
+            ctx.lineTo(350, 160);
+            ctx.stroke();
+
+            // Control dot
+            ctx.fillStyle = '#00d4ff';
+            ctx.beginPath();
+            ctx.arc(350, 80, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Target circle
+            ctx.strokeStyle = '#00d4ff';
+            ctx.beginPath();
+            ctx.arc(350, 160, 15, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(350, 145);
+            ctx.lineTo(350, 175);
+            ctx.moveTo(335, 160);
+            ctx.lineTo(365, 160);
+            ctx.stroke();
+
+            // Measurement
+            ctx.strokeStyle = '#7b2cbf';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(500, 60, 50, 40);
+            ctx.strokeRect(500, 140, 50, 40);
+            
+            // Meter symbol
+            ctx.beginPath();
+            ctx.arc(525, 75, 12, Math.PI, 0);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(525, 75);
+            ctx.lineTo(532, 65);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(525, 155, 12, Math.PI, 0);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(525, 155);
+            ctx.lineTo(532, 145);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#888';
+            ctx.font = '12px Arial';
+            ctx.fillText('Hadamard', 90, 115);
+            ctx.fillText('Pauli-X', 195, 195);
+            ctx.fillText('CNOT', 335, 200);
+            ctx.fillText('Measure', 495, 200);
+        }
+
+        function drawHI() {
+            const canvas = document.getElementById('HICanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 350, 250);
+
+            // Draw circuit
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(30, 80);
+            ctx.lineTo(320, 80);
+            ctx.moveTo(30, 150);
+            ctx.lineTo(320, 150);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Arial';
+            ctx.fillText('|0⟩', 10, 85);
+            ctx.fillText('|0⟩', 10, 155);
+
+            // H gate on qubit 1
+            ctx.fillStyle = '#ffd93d';
+            ctx.fillRect(100, 60, 40, 40);
+            ctx.fillStyle = '#000';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText('H', 112, 87);
+
+            // I gate on qubit 2 (dashed box)
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.setLineDash([5, 5]);
+            ctx.strokeRect(100, 130, 40, 40);
+            ctx.setLineDash([]);
+            ctx.fillStyle = 'rgba(255,255,255,0.5)';
+            ctx.font = '14px Arial';
+            ctx.fillText('I', 115, 157);
+
+            // Result state
+            const states = ['|00⟩', '|01⟩', '|10⟩', '|11⟩'];
+            const result = [1/Math.sqrt(2), 0, 1/Math.sqrt(2), 0];
+            const colors = ['#00d4ff', '#7b2cbf', '#ff6b6b', '#ffd93d'];
+
+            for (let i = 0; i < 4; i++) {
+                const x = 200 + i * 35;
+                const height = Math.abs(result[i]) * 60;
+                ctx.fillStyle = colors[i];
+                ctx.fillRect(x, 220 - height, 25, height);
+            }
+        }
+
+        function drawIH() {
+            const canvas = document.getElementById('IHCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 350, 250);
+
+            // Draw circuit
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(30, 80);
+            ctx.lineTo(320, 80);
+            ctx.moveTo(30, 150);
+            ctx.lineTo(320, 150);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Arial';
+            ctx.fillText('|0⟩', 10, 85);
+            ctx.fillText('|0⟩', 10, 155);
+
+            // I gate on qubit 1 (dashed box)
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.setLineDash([5, 5]);
+            ctx.strokeRect(100, 60, 40, 40);
+            ctx.setLineDash([]);
+            ctx.fillStyle = 'rgba(255,255,255,0.5)';
+            ctx.font = '14px Arial';
+            ctx.fillText('I', 115, 87);
+
+            // H gate on qubit 2
+            ctx.fillStyle = '#ffd93d';
+            ctx.fillRect(100, 130, 40, 40);
+            ctx.fillStyle = '#000';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText('H', 112, 157);
+
+            // Result state
+            const result = [1/Math.sqrt(2), 1/Math.sqrt(2), 0, 0];
+            const colors = ['#00d4ff', '#7b2cbf', '#ff6b6b', '#ffd93d'];
+
+            for (let i = 0; i < 4; i++) {
+                const x = 200 + i * 35;
+                const height = Math.abs(result[i]) * 60;
+                ctx.fillStyle = colors[i];
+                ctx.fillRect(x, 220 - height, 25, height);
+            }
+        }
+
+        // Circuit builder
+        function addGate(qubit, gate) {
+            circuitGates.push({qubit, gate});
+            updateBuilder();
+        }
+
+        function resetCircuit() {
+            circuitGates = [];
+            updateBuilder();
+        }
+
+        function updateBuilder() {
+            const canvas = document.getElementById('builderCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 800, 200);
+
+            // Draw qubit lines
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(50, 60);
+            ctx.lineTo(750, 60);
+            ctx.moveTo(50, 130);
+            ctx.lineTo(750, 130);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Arial';
+            ctx.fillText('|0⟩', 20, 65);
+            ctx.fillText('|0⟩', 20, 135);
+            ctx.fillText('q₁', 20, 45);
+            ctx.fillText('q₂', 20, 115);
+
+            // Draw gates
+            const gateColors = {'H': '#ffd93d', 'X': '#ff6b6b', 'Z': '#7b2cbf'};
+            circuitGates.forEach((g, i) => {
+                const x = 100 + i * 80;
+                const y = g.qubit === 1 ? 40 : 110;
+                
+                ctx.fillStyle = gateColors[g.gate];
+                ctx.fillRect(x, y, 40, 40);
+                ctx.fillStyle = '#000';
+                ctx.font = 'bold 16px Arial';
+                ctx.fillText(g.gate, x + 12, y + 27);
+            });
+
+            // Calculate final state
+            let state = [1, 0, 0, 0]; // |00⟩
+            const sqrt2 = 1/Math.sqrt(2);
+            
+            const gates = {
+                'H': [[sqrt2, sqrt2], [sqrt2, -sqrt2]],
+                'X': [[0, 1], [1, 0]],
+                'Z': [[1, 0], [0, -1]]
+            };
+            const I = [[1, 0], [0, 1]];
+
+            circuitGates.forEach(g => {
+                const gate = gates[g.gate];
+                let fullGate;
+                if (g.qubit === 1) {
+                    fullGate = kron(gate, I);
+                } else {
+                    fullGate = kron(I, gate);
+                }
+                state = matVecMul(fullGate, state);
+            });
+
+            // Display state
+            const stateStr = state.map((v, i) => {
+                if (Math.abs(v) < 0.001) return '';
+                const sign = v >= 0 ? '+' : '';
+                return `${sign}${v.toFixed(3)}|${['00','01','10','11'][i]}⟩`;
+            }).filter(s => s).join(' ');
+
+            document.getElementById('builderState').innerHTML = 
+                `Final state: ${stateStr || '|00⟩'}<br>` +
+                `Vector: [${state.map(v => v.toFixed(3)).join(', ')}]`;
+        }
+
+        function kron(a, b) {
+            const result = [];
+            for (let i = 0; i < 2; i++) {
+                for (let k = 0; k < 2; k++) {
+                    const row = [];
+                    for (let j = 0; j < 2; j++) {
+                        for (let l = 0; l < 2; l++) {
+                            row.push(a[i][j] * b[k][l]);
+                        }
+                    }
+                    result.push(row);
+                }
+            }
+            return result;
+        }
+
+        function matVecMul(mat, vec) {
+            return mat.map(row => row.reduce((sum, val, i) => sum + val * vec[i], 0));
+        }
+
+        // Initialize
+        drawBasis();
+        drawStateVector();
+        drawCircuitNotation();
+        drawHI();
+        drawIH();
+        updateBuilder();
+    </script>
+</body>
+</html>

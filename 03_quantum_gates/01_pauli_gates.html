@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pauli Gates - X, Y, Z</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle { text-align: center; color: #888; margin-bottom: 30px; font-size: 1.2em; }
+        .section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .section h2 { color: #00d4ff; margin-bottom: 20px; font-size: 1.8em; }
+        .gate-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 20px;
+        }
+        .gate-card {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+        }
+        .gate-card h3 { color: #7b2cbf; margin-bottom: 15px; font-size: 1.5em; }
+        canvas { border-radius: 10px; background: rgba(0,0,0,0.5); }
+        .matrix-display {
+            font-family: 'Courier New', monospace;
+            font-size: 1.3em;
+            background: rgba(0,212,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            display: inline-block;
+            margin: 10px;
+        }
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 50px);
+            gap: 5px;
+            margin: 10px auto;
+            width: fit-content;
+        }
+        .matrix-cell {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .explanation {
+            background: rgba(123,44,191,0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            line-height: 1.8;
+        }
+        .code-block {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        .code-block .keyword { color: #569cd6; }
+        .code-block .function { color: #dcdcaa; }
+        .code-block .comment { color: #6a9955; }
+        .code-block .number { color: #b5cea8; }
+        button {
+            background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,212,255,0.4);
+        }
+        .nav-buttons { display: flex; justify-content: space-between; margin-top: 30px; }
+        .nav-btn {
+            background: rgba(255,255,255,0.1);
+            padding: 15px 30px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #00d4ff;
+            transition: all 0.3s ease;
+        }
+        .nav-btn:hover { background: rgba(0,212,255,0.2); }
+        .gate-symbol {
+            font-size: 3em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .effect-display {
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Pauli Gates: X, Y, Z</h1>
+        <p class="subtitle">The Fundamental Single-Qubit Quantum Gates</p>
+
+        <div class="section">
+            <h2>What are Pauli Gates?</h2>
+            <p class="explanation">
+                The <strong>Pauli gates</strong> (X, Y, Z) are the most fundamental single-qubit gates in quantum computing.
+                They correspond to rotations of π (180°) around the X, Y, and Z axes of the Bloch sphere.
+                Together with the identity I, they form a complete basis for all 2×2 Hermitian matrices.
+            </p>
+        </div>
+
+        <div class="section">
+            <h2>The Three Pauli Gates</h2>
+            <div class="gate-grid">
+                <div class="gate-card">
+                    <div class="gate-symbol" style="color: #ff6b6b;">X</div>
+                    <h3>Pauli-X (NOT Gate)</h3>
+                    <div class="matrix-grid">
+                        <div class="matrix-cell" style="background: rgba(255,255,255,0.1);">0</div>
+                        <div class="matrix-cell" style="background: rgba(255,107,107,0.5);">1</div>
+                        <div class="matrix-cell" style="background: rgba(255,107,107,0.5);">1</div>
+                        <div class="matrix-cell" style="background: rgba(255,255,255,0.1);">0</div>
+                    </div>
+                    <div class="effect-display">
+                        <strong>Effect:</strong> Flips |0⟩ ↔ |1⟩<br>
+                        X|0⟩ = |1⟩ &nbsp;&nbsp; X|1⟩ = |0⟩
+                    </div>
+                    <canvas id="xGateCanvas" width="250" height="250"></canvas>
+                    <div style="margin-top: 10px;">
+                        <button onclick="animateXGate()">Apply X Gate</button>
+                    </div>
+                </div>
+                
+                <div class="gate-card">
+                    <div class="gate-symbol" style="color: #00d4ff;">Y</div>
+                    <h3>Pauli-Y Gate</h3>
+                    <div class="matrix-grid">
+                        <div class="matrix-cell" style="background: rgba(255,255,255,0.1);">0</div>
+                        <div class="matrix-cell" style="background: rgba(0,212,255,0.5);">-i</div>
+                        <div class="matrix-cell" style="background: rgba(0,212,255,0.5);">i</div>
+                        <div class="matrix-cell" style="background: rgba(255,255,255,0.1);">0</div>
+                    </div>
+                    <div class="effect-display">
+                        <strong>Effect:</strong> Flip with phase<br>
+                        Y|0⟩ = i|1⟩ &nbsp;&nbsp; Y|1⟩ = -i|0⟩
+                    </div>
+                    <canvas id="yGateCanvas" width="250" height="250"></canvas>
+                    <div style="margin-top: 10px;">
+                        <button onclick="animateYGate()">Apply Y Gate</button>
+                    </div>
+                </div>
+                
+                <div class="gate-card">
+                    <div class="gate-symbol" style="color: #7b2cbf;">Z</div>
+                    <h3>Pauli-Z (Phase Gate)</h3>
+                    <div class="matrix-grid">
+                        <div class="matrix-cell" style="background: rgba(123,44,191,0.5);">1</div>
+                        <div class="matrix-cell" style="background: rgba(255,255,255,0.1);">0</div>
+                        <div class="matrix-cell" style="background: rgba(255,255,255,0.1);">0</div>
+                        <div class="matrix-cell" style="background: rgba(255,107,107,0.5);">-1</div>
+                    </div>
+                    <div class="effect-display">
+                        <strong>Effect:</strong> Phase flip on |1⟩<br>
+                        Z|0⟩ = |0⟩ &nbsp;&nbsp; Z|1⟩ = -|1⟩
+                    </div>
+                    <canvas id="zGateCanvas" width="250" height="250"></canvas>
+                    <div style="margin-top: 10px;">
+                        <button onclick="animateZGate()">Apply Z Gate</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Bloch Sphere Rotations</h2>
+            <div class="gate-grid">
+                <div class="gate-card">
+                    <h3>Interactive Bloch Sphere</h3>
+                    <canvas id="blochCanvas" width="400" height="400"></canvas>
+                    <div style="margin-top: 15px;">
+                        <button onclick="applyGate('X')">Apply X</button>
+                        <button onclick="applyGate('Y')">Apply Y</button>
+                        <button onclick="applyGate('Z')">Apply Z</button>
+                        <button onclick="resetState()">Reset to |0⟩</button>
+                    </div>
+                    <div id="stateDisplay" style="margin-top: 15px; font-size: 1.2em;"></div>
+                </div>
+                
+                <div class="gate-card">
+                    <h3>Gate Properties</h3>
+                    <div class="explanation" style="text-align: left;">
+                        <p><strong>Self-inverse:</strong> X² = Y² = Z² = I</p>
+                        <p style="margin-top: 10px;"><strong>Anti-commutation:</strong> XY = -YX, YZ = -ZY, ZX = -XZ</p>
+                        <p style="margin-top: 10px;"><strong>Products:</strong> XY = iZ, YZ = iX, ZX = iY</p>
+                        <p style="margin-top: 10px;"><strong>Hermitian:</strong> X† = X, Y† = Y, Z† = Z</p>
+                        <p style="margin-top: 10px;"><strong>Unitary:</strong> X†X = Y†Y = Z†Z = I</p>
+                    </div>
+                    <canvas id="propertiesCanvas" width="350" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Identity Gate</h2>
+            <div class="gate-card" style="max-width: 400px; margin: 0 auto;">
+                <div class="gate-symbol" style="color: #ffd93d;">I</div>
+                <h3>Identity Gate</h3>
+                <div class="matrix-grid">
+                    <div class="matrix-cell" style="background: rgba(255,217,61,0.5);">1</div>
+                    <div class="matrix-cell" style="background: rgba(255,255,255,0.1);">0</div>
+                    <div class="matrix-cell" style="background: rgba(255,255,255,0.1);">0</div>
+                    <div class="matrix-cell" style="background: rgba(255,217,61,0.5);">1</div>
+                </div>
+                <div class="effect-display">
+                    <strong>Effect:</strong> Does nothing<br>
+                    I|0⟩ = |0⟩ &nbsp;&nbsp; I|1⟩ = |1⟩
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Python Implementation</h2>
+            <div class="code-block">
+<span class="keyword">import</span> numpy <span class="keyword">as</span> np
+
+<span class="comment"># Define Pauli gates</span>
+I = np.eye(<span class="number">2</span>, dtype=<span class="keyword">complex</span>)
+
+X = np.array([[<span class="number">0</span>, <span class="number">1</span>],
+              [<span class="number">1</span>, <span class="number">0</span>]], dtype=<span class="keyword">complex</span>)
+
+Y = np.array([[<span class="number">0</span>, -<span class="number">1j</span>],
+              [<span class="number">1j</span>,  <span class="number">0</span>]], dtype=<span class="keyword">complex</span>)
+
+Z = np.array([[<span class="number">1</span>,  <span class="number">0</span>],
+              [<span class="number">0</span>, -<span class="number">1</span>]], dtype=<span class="keyword">complex</span>)
+
+<span class="comment"># Define basis states</span>
+ket0 = np.array([[<span class="number">1</span>], [<span class="number">0</span>]], dtype=<span class="keyword">complex</span>)
+ket1 = np.array([[<span class="number">0</span>], [<span class="number">1</span>]], dtype=<span class="keyword">complex</span>)
+
+<span class="comment"># Apply X gate (NOT)</span>
+<span class="function">print</span>(<span class="string">"X|0⟩ ="</span>, (X @ ket0).flatten())  <span class="comment"># [0 1] = |1⟩</span>
+<span class="function">print</span>(<span class="string">"X|1⟩ ="</span>, (X @ ket1).flatten())  <span class="comment"># [1 0] = |0⟩</span>
+
+<span class="comment"># Apply Y gate</span>
+<span class="function">print</span>(<span class="string">"Y|0⟩ ="</span>, (Y @ ket0).flatten())  <span class="comment"># [0 1j] = i|1⟩</span>
+<span class="function">print</span>(<span class="string">"Y|1⟩ ="</span>, (Y @ ket1).flatten())  <span class="comment"># [-1j 0] = -i|0⟩</span>
+
+<span class="comment"># Apply Z gate</span>
+<span class="function">print</span>(<span class="string">"Z|0⟩ ="</span>, (Z @ ket0).flatten())  <span class="comment"># [1 0] = |0⟩</span>
+<span class="function">print</span>(<span class="string">"Z|1⟩ ="</span>, (Z @ ket1).flatten())  <span class="comment"># [0 -1] = -|1⟩</span>
+
+<span class="comment"># Verify X² = I</span>
+<span class="function">print</span>(<span class="string">"X² = I?"</span>, np.allclose(X @ X, I))  <span class="comment"># True</span>
+
+<span class="comment"># Verify XY = iZ</span>
+<span class="function">print</span>(<span class="string">"XY = iZ?"</span>, np.allclose(X @ Y, <span class="number">1j</span> * Z))  <span class="comment"># True</span>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <a href="../02_quantum_operations/03_tensor_product.html" class="nav-btn">← Previous: Tensor Product</a>
+            <a href="02_hadamard_gate.html" class="nav-btn">Next: Hadamard Gate →</a>
+        </div>
+    </div>
+
+    <script>
+        // State tracking
+        let currentTheta = 0;
+        let currentPhi = 0;
+        let animating = false;
+
+        function drawSmallBloch(canvasId, theta, phi, color, label) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 250, 250);
+
+            const cx = 125, cy = 125, r = 80;
+
+            // Draw sphere
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw equator
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, r, r * 0.3, 0, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw axis for this gate
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            ctx.setLineDash([5, 5]);
+            
+            if (label === 'X') {
+                ctx.beginPath();
+                ctx.moveTo(cx - r - 10, cy);
+                ctx.lineTo(cx + r + 10, cy);
+                ctx.stroke();
+            } else if (label === 'Y') {
+                ctx.beginPath();
+                ctx.ellipse(cx, cy, r * 0.3, r, Math.PI/2, 0, Math.PI * 2);
+                ctx.stroke();
+            } else if (label === 'Z') {
+                ctx.beginPath();
+                ctx.moveTo(cx, cy - r - 10);
+                ctx.lineTo(cx, cy + r + 10);
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
+
+            // Draw state vector
+            const z = r * Math.cos(theta);
+            const x = r * Math.sin(theta) * Math.cos(phi);
+            const y = r * Math.sin(theta) * Math.sin(phi);
+
+            const px = cx + x + y * 0.3;
+            const py = cy - z;
+
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(px, py);
+            ctx.stroke();
+
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(px, py, 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Labels
+            ctx.fillStyle = '#fff';
+            ctx.font = '12px Arial';
+            ctx.fillText('|0⟩', cx + 5, cy - r - 5);
+            ctx.fillText('|1⟩', cx + 5, cy + r + 12);
+        }
+
+        function animateXGate() {
+            if (animating) return;
+            animating = true;
+            let angle = 0;
+            const startTheta = 0;
+            
+            function animate() {
+                angle += 0.1;
+                const theta = angle;
+                drawSmallBloch('xGateCanvas', theta, 0, '#ff6b6b', 'X');
+                
+                if (angle < Math.PI) {
+                    requestAnimationFrame(animate);
+                } else {
+                    animating = false;
+                    drawSmallBloch('xGateCanvas', Math.PI, 0, '#ff6b6b', 'X');
+                }
+            }
+            animate();
+        }
+
+        function animateYGate() {
+            if (animating) return;
+            animating = true;
+            let angle = 0;
+            
+            function animate() {
+                angle += 0.1;
+                drawSmallBloch('yGateCanvas', angle, Math.PI/2, '#00d4ff', 'Y');
+                
+                if (angle < Math.PI) {
+                    requestAnimationFrame(animate);
+                } else {
+                    animating = false;
+                    drawSmallBloch('yGateCanvas', Math.PI, Math.PI/2, '#00d4ff', 'Y');
+                }
+            }
+            animate();
+        }
+
+        function animateZGate() {
+            if (animating) return;
+            animating = true;
+            let angle = 0;
+            
+            function animate() {
+                angle += 0.1;
+                // Z gate rotates around Z axis - affects phase
+                drawSmallBloch('zGateCanvas', Math.PI/2, angle, '#7b2cbf', 'Z');
+                
+                if (angle < Math.PI) {
+                    requestAnimationFrame(animate);
+                } else {
+                    animating = false;
+                    drawSmallBloch('zGateCanvas', Math.PI/2, Math.PI, '#7b2cbf', 'Z');
+                }
+            }
+            animate();
+        }
+
+        function drawMainBloch() {
+            const canvas = document.getElementById('blochCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 400, 400);
+
+            const cx = 200, cy = 200, r = 150;
+
+            // Draw sphere
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw equator
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, r, r * 0.3, 0, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw meridian
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, r * 0.3, r, 0, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw axes
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.setLineDash([5, 5]);
+            
+            // Z axis
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - r - 20);
+            ctx.lineTo(cx, cy + r + 20);
+            ctx.stroke();
+
+            // X axis
+            ctx.beginPath();
+            ctx.moveTo(cx - r - 20, cy);
+            ctx.lineTo(cx + r + 20, cy);
+            ctx.stroke();
+
+            ctx.setLineDash([]);
+
+            // Labels
+            ctx.fillStyle = '#00d4ff';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText('|0⟩', cx + 10, cy - r - 5);
+            ctx.fillStyle = '#7b2cbf';
+            ctx.fillText('|1⟩', cx + 10, cy + r + 15);
+            ctx.fillStyle = '#fff';
+            ctx.fillText('X', cx + r + 5, cy + 5);
+
+            // Draw state vector
+            const z = r * Math.cos(currentTheta);
+            const x = r * Math.sin(currentTheta) * Math.cos(currentPhi);
+            const y = r * Math.sin(currentTheta) * Math.sin(currentPhi);
+
+            const px = cx + x + y * 0.3;
+            const py = cy - z;
+
+            ctx.strokeStyle = '#ff6b6b';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(px, py);
+            ctx.stroke();
+
+            ctx.fillStyle = '#ff6b6b';
+            ctx.beginPath();
+            ctx.arc(px, py, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Glow
+            const gradient = ctx.createRadialGradient(px, py, 0, px, py, 15);
+            gradient.addColorStop(0, 'rgba(255,107,107,0.8)');
+            gradient.addColorStop(1, 'rgba(255,107,107,0)');
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(px, py, 15, 0, Math.PI * 2);
+            ctx.fill();
+
+            updateStateDisplay();
+        }
+
+        function applyGate(gate) {
+            if (animating) return;
+            animating = true;
+
+            const startTheta = currentTheta;
+            const startPhi = currentPhi;
+            let progress = 0;
+
+            function animate() {
+                progress += 0.05;
+
+                if (gate === 'X') {
+                    // X rotates around X axis by π
+                    currentTheta = startTheta + progress * Math.PI;
+                    if (currentTheta > Math.PI) currentTheta = Math.PI - (currentTheta - Math.PI);
+                } else if (gate === 'Y') {
+                    // Y rotates around Y axis by π
+                    currentTheta = startTheta + progress * Math.PI;
+                    currentPhi = startPhi + progress * Math.PI;
+                } else if (gate === 'Z') {
+                    // Z rotates around Z axis by π (phase flip)
+                    currentPhi = startPhi + progress * Math.PI;
+                }
+
+                drawMainBloch();
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    animating = false;
+                    // Normalize angles
+                    currentTheta = currentTheta % (2 * Math.PI);
+                    currentPhi = currentPhi % (2 * Math.PI);
+                    drawMainBloch();
+                }
+            }
+            animate();
+        }
+
+        function resetState() {
+            currentTheta = 0;
+            currentPhi = 0;
+            drawMainBloch();
+        }
+
+        function updateStateDisplay() {
+            const alpha = Math.cos(currentTheta / 2);
+            const beta = Math.sin(currentTheta / 2);
+            const phaseStr = currentPhi !== 0 ? `e^(i${(currentPhi/Math.PI).toFixed(2)}π)` : '';
+            
+            let stateStr = '';
+            if (Math.abs(alpha) > 0.01) stateStr += `${alpha.toFixed(3)}|0⟩`;
+            if (Math.abs(beta) > 0.01) {
+                if (stateStr) stateStr += ' + ';
+                stateStr += `${beta.toFixed(3)}${phaseStr}|1⟩`;
+            }
+            
+            document.getElementById('stateDisplay').innerHTML = `|ψ⟩ = ${stateStr || '|0⟩'}`;
+        }
+
+        function drawProperties() {
+            const canvas = document.getElementById('propertiesCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 350, 200);
+
+            // Draw X² = I visualization
+            ctx.fillStyle = '#ff6b6b';
+            ctx.font = 'bold 20px Arial';
+            ctx.fillText('X', 30, 50);
+            ctx.fillText('X', 70, 50);
+            ctx.fillStyle = '#fff';
+            ctx.fillText('=', 110, 50);
+            ctx.fillStyle = '#ffd93d';
+            ctx.fillText('I', 150, 50);
+
+            // Draw Y² = I
+            ctx.fillStyle = '#00d4ff';
+            ctx.fillText('Y', 30, 100);
+            ctx.fillText('Y', 70, 100);
+            ctx.fillStyle = '#fff';
+            ctx.fillText('=', 110, 100);
+            ctx.fillStyle = '#ffd93d';
+            ctx.fillText('I', 150, 100);
+
+            // Draw Z² = I
+            ctx.fillStyle = '#7b2cbf';
+            ctx.fillText('Z', 30, 150);
+            ctx.fillText('Z', 70, 150);
+            ctx.fillStyle = '#fff';
+            ctx.fillText('=', 110, 150);
+            ctx.fillStyle = '#ffd93d';
+            ctx.fillText('I', 150, 150);
+
+            // Draw XY = iZ
+            ctx.fillStyle = '#ff6b6b';
+            ctx.fillText('X', 200, 50);
+            ctx.fillStyle = '#00d4ff';
+            ctx.fillText('Y', 240, 50);
+            ctx.fillStyle = '#fff';
+            ctx.fillText('= i', 280, 50);
+            ctx.fillStyle = '#7b2cbf';
+            ctx.fillText('Z', 320, 50);
+        }
+
+        // Initialize
+        drawSmallBloch('xGateCanvas', 0, 0, '#ff6b6b', 'X');
+        drawSmallBloch('yGateCanvas', 0, 0, '#00d4ff', 'Y');
+        drawSmallBloch('zGateCanvas', Math.PI/2, 0, '#7b2cbf', 'Z');
+        drawMainBloch();
+        drawProperties();
+    </script>
+</body>
+</html>

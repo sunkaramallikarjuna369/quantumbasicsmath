@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complex Amplitudes in Quantum Computing</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+        }
+        .section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .section h2 {
+            color: #00d4ff;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        .visualization-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-top: 20px;
+        }
+        .viz-card {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+        }
+        .viz-card h3 {
+            color: #7b2cbf;
+            margin-bottom: 15px;
+        }
+        canvas {
+            border-radius: 10px;
+            background: rgba(0,0,0,0.5);
+        }
+        .equation {
+            font-family: 'Times New Roman', serif;
+            font-size: 1.6em;
+            text-align: center;
+            padding: 20px;
+            background: rgba(0,212,255,0.1);
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .explanation {
+            background: rgba(123,44,191,0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            line-height: 1.8;
+        }
+        .code-block {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        .code-block .keyword { color: #569cd6; }
+        .code-block .function { color: #dcdcaa; }
+        .code-block .string { color: #ce9178; }
+        .code-block .number { color: #b5cea8; }
+        .code-block .comment { color: #6a9955; }
+        .complex-display {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .complex-box {
+            background: rgba(0,0,0,0.4);
+            padding: 20px 30px;
+            border-radius: 15px;
+            text-align: center;
+            min-width: 200px;
+        }
+        .complex-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .slider-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .slider-container input[type="range"] {
+            width: 80%;
+            height: 10px;
+            -webkit-appearance: none;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            border-radius: 5px;
+            outline: none;
+        }
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 25px;
+            height: 25px;
+            background: #fff;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        button {
+            background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            color: white;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,212,255,0.4);
+        }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        .nav-btn {
+            background: rgba(255,255,255,0.1);
+            padding: 15px 30px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #00d4ff;
+            transition: all 0.3s ease;
+        }
+        .nav-btn:hover {
+            background: rgba(0,212,255,0.2);
+        }
+        .operation-result {
+            font-size: 1.5em;
+            padding: 15px;
+            background: rgba(0,212,255,0.1);
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Complex Amplitudes</h1>
+        <p class="subtitle">Why Quantum Computing Needs Complex Numbers</p>
+
+        <div class="section">
+            <h2>What are Complex Numbers?</h2>
+            <p class="explanation">
+                A <strong>complex number</strong> has two parts: a real part and an imaginary part. Written as <strong>z = a + bi</strong>, 
+                where 'a' is the real part, 'b' is the imaginary part, and 'i' is the imaginary unit (i² = -1).
+                In quantum mechanics, amplitudes are complex numbers because they encode both <strong>magnitude</strong> (how much) 
+                and <strong>phase</strong> (timing/direction), which are essential for quantum interference.
+            </p>
+            
+            <div class="equation">
+                z = a + bi &nbsp;&nbsp; where &nbsp;&nbsp; i² = -1
+            </div>
+
+            <div class="complex-display">
+                <div class="complex-box">
+                    <div style="color: #00d4ff;">Real Part</div>
+                    <div class="complex-value" style="color: #00d4ff;">a</div>
+                    <div style="color: #888;">Horizontal axis</div>
+                </div>
+                <div class="complex-box">
+                    <div style="color: #7b2cbf;">Imaginary Part</div>
+                    <div class="complex-value" style="color: #7b2cbf;">bi</div>
+                    <div style="color: #888;">Vertical axis</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Complex Plane Visualization</h2>
+            <p style="text-align: center; margin-bottom: 20px;">
+                Every complex number can be represented as a point (or vector) in the complex plane
+            </p>
+            
+            <div class="visualization-grid">
+                <div class="viz-card">
+                    <h3>Interactive Complex Plane</h3>
+                    <canvas id="complexPlane" width="400" height="400"></canvas>
+                    <div class="slider-container">
+                        <label>Real part (a): <span id="realValue">1</span></label>
+                        <input type="range" id="realSlider" min="-3" max="3" step="0.1" value="1" oninput="updateComplex()">
+                    </div>
+                    <div class="slider-container">
+                        <label>Imaginary part (b): <span id="imagValue">2</span></label>
+                        <input type="range" id="imagSlider" min="-3" max="3" step="0.1" value="2" oninput="updateComplex()">
+                    </div>
+                    <div id="complexInfo" style="margin-top: 15px;"></div>
+                </div>
+                
+                <div class="viz-card">
+                    <h3>Polar Form</h3>
+                    <canvas id="polarCanvas" width="400" height="400"></canvas>
+                    <div class="equation" style="font-size: 1.2em; margin-top: 15px;">
+                        z = r·e<sup>iθ</sup> = r(cos θ + i sin θ)
+                    </div>
+                    <div id="polarInfo" style="margin-top: 10px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Complex Number Operations</h2>
+            <div class="visualization-grid">
+                <div class="viz-card">
+                    <h3>Addition</h3>
+                    <div class="operation-result">
+                        (1 + 2i) + (3 - 1i) = <span style="color: #00d4ff;">4 + 1i</span>
+                    </div>
+                    <p style="color: #aaa; margin-top: 10px;">
+                        Add real parts together, add imaginary parts together
+                    </p>
+                    <canvas id="addCanvas" width="300" height="250"></canvas>
+                </div>
+                
+                <div class="viz-card">
+                    <h3>Multiplication</h3>
+                    <div class="operation-result">
+                        (1 + 2i) × (3 - 1i) = <span style="color: #7b2cbf;">5 + 5i</span>
+                    </div>
+                    <p style="color: #aaa; margin-top: 10px;">
+                        (a+bi)(c+di) = (ac-bd) + (ad+bc)i
+                    </p>
+                    <canvas id="multCanvas" width="300" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Complex Conjugate</h2>
+            <p class="explanation">
+                The <strong>complex conjugate</strong> of z = a + bi is z* = a - bi (flip the sign of the imaginary part).
+                This is crucial in quantum mechanics because the probability of a state is |α|² = α* × α (conjugate times original).
+            </p>
+            
+            <div class="visualization-grid">
+                <div class="viz-card">
+                    <h3>Conjugate Visualization</h3>
+                    <canvas id="conjugateCanvas" width="350" height="350"></canvas>
+                    <div style="margin-top: 15px;">
+                        <button onclick="animateConjugate()">Animate Conjugate</button>
+                    </div>
+                </div>
+                
+                <div class="viz-card">
+                    <h3>Computing |z|²</h3>
+                    <div class="equation" style="font-size: 1.3em;">
+                        |z|² = z* × z = (a - bi)(a + bi) = a² + b²
+                    </div>
+                    <div style="margin-top: 20px; text-align: left; padding: 0 20px;">
+                        <p style="margin: 10px 0;">For z = 1 + 2i:</p>
+                        <p style="margin: 10px 0; color: #00d4ff;">z* = 1 - 2i</p>
+                        <p style="margin: 10px 0; color: #7b2cbf;">|z|² = 1² + 2² = 5</p>
+                        <p style="margin: 10px 0; color: #ff6b6b;">|z| = √5 ≈ 2.236</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Why Complex Numbers in Quantum Computing?</h2>
+            <div class="visualization-grid">
+                <div class="viz-card">
+                    <h3>Phase Matters!</h3>
+                    <canvas id="phaseCanvas" width="350" height="300"></canvas>
+                    <p style="margin-top: 15px; color: #aaa;">
+                        States |+⟩ = (|0⟩ + |1⟩)/√2 and |-⟩ = (|0⟩ - |1⟩)/√2 have the same probabilities 
+                        but different phases, leading to different interference patterns.
+                    </p>
+                </div>
+                
+                <div class="viz-card">
+                    <h3>Interference</h3>
+                    <canvas id="interferenceCanvas" width="350" height="300"></canvas>
+                    <p style="margin-top: 15px; color: #aaa;">
+                        Complex amplitudes can add constructively (same phase) or destructively (opposite phase).
+                        This is the key to quantum algorithms!
+                    </p>
+                    <button onclick="toggleInterference()">Toggle Interference</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Python Implementation</h2>
+            <div class="code-block">
+<span class="keyword">import</span> numpy <span class="keyword">as</span> np
+
+<span class="comment"># Define complex numbers</span>
+a = <span class="number">1</span> + <span class="number">2j</span>  <span class="comment"># Python uses 'j' for imaginary unit</span>
+b = <span class="number">3</span> - <span class="number">1j</span>
+
+<span class="comment"># Basic operations</span>
+<span class="function">print</span>(<span class="string">"Addition:"</span>, a + b)      <span class="comment"># Output: (4+1j)</span>
+<span class="function">print</span>(<span class="string">"Multiplication:"</span>, a * b) <span class="comment"># Output: (5+5j)</span>
+
+<span class="comment"># Complex conjugate</span>
+<span class="function">print</span>(<span class="string">"Conjugate of a:"</span>, np.conj(a))  <span class="comment"># Output: (1-2j)</span>
+
+<span class="comment"># Magnitude squared (probability)</span>
+<span class="function">print</span>(<span class="string">"|a|²:"</span>, np.abs(a)**<span class="number">2</span>)  <span class="comment"># Output: 5.0</span>
+
+<span class="comment"># Polar form</span>
+r = np.abs(a)                    <span class="comment"># Magnitude: √5 ≈ 2.236</span>
+theta = np.angle(a)              <span class="comment"># Phase: arctan(2/1) ≈ 1.107 rad</span>
+<span class="function">print</span>(f<span class="string">"Polar: r={r:.3f}, θ={theta:.3f} rad"</span>)
+
+<span class="comment"># Quantum state with complex amplitude</span>
+ket0 = np.array([[<span class="number">1</span>], [<span class="number">0</span>]], dtype=<span class="string">complex</span>)
+ket1 = np.array([[<span class="number">0</span>], [<span class="number">1</span>]], dtype=<span class="string">complex</span>)
+
+<span class="comment"># State with complex phase: |ψ⟩ = (|0⟩ + i|1⟩)/√2</span>
+psi = (<span class="number">1</span>/np.sqrt(<span class="number">2</span>)) * (ket0 + <span class="number">1j</span>*ket1)
+<span class="function">print</span>(<span class="string">"State with phase:"</span>, psi.flatten())
+<span class="comment"># Output: [0.707+0.j    0.+0.707j]</span>
+
+<span class="comment"># Probabilities are still 50-50!</span>
+<span class="function">print</span>(<span class="string">"P(0):"</span>, np.abs(psi[<span class="number">0</span>])**<span class="number">2</span>)  <span class="comment"># Output: 0.5</span>
+<span class="function">print</span>(<span class="string">"P(1):"</span>, np.abs(psi[<span class="number">1</span>])**<span class="number">2</span>)  <span class="comment"># Output: 0.5</span>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Key Takeaways</h2>
+            <div class="explanation">
+                <ul style="list-style: none; padding: 0;">
+                    <li style="margin: 15px 0; padding-left: 30px; position: relative;">
+                        <span style="position: absolute; left: 0; color: #00d4ff;">1.</span>
+                        <strong>Amplitudes are complex:</strong> Quantum states have complex amplitudes α, β where |ψ⟩ = α|0⟩ + β|1⟩
+                    </li>
+                    <li style="margin: 15px 0; padding-left: 30px; position: relative;">
+                        <span style="position: absolute; left: 0; color: #00d4ff;">2.</span>
+                        <strong>Probability = |amplitude|²:</strong> The probability of measuring a state is the squared magnitude of its amplitude
+                    </li>
+                    <li style="margin: 15px 0; padding-left: 30px; position: relative;">
+                        <span style="position: absolute; left: 0; color: #00d4ff;">3.</span>
+                        <strong>Phase enables interference:</strong> Complex phases allow quantum states to interfere constructively or destructively
+                    </li>
+                    <li style="margin: 15px 0; padding-left: 30px; position: relative;">
+                        <span style="position: absolute; left: 0; color: #00d4ff;">4.</span>
+                        <strong>Conjugate transpose (†):</strong> Used to compute inner products and probabilities: ⟨ψ|φ⟩ = ψ†φ
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <a href="02_superposition.html" class="nav-btn">← Previous: Superposition</a>
+            <a href="../02_quantum_operations/01_inner_product.html" class="nav-btn">Next: Inner Product →</a>
+        </div>
+    </div>
+
+    <script>
+        let realPart = 1;
+        let imagPart = 2;
+        let interferenceMode = 'constructive';
+
+        function updateComplex() {
+            realPart = parseFloat(document.getElementById('realSlider').value);
+            imagPart = parseFloat(document.getElementById('imagSlider').value);
+            document.getElementById('realValue').textContent = realPart.toFixed(1);
+            document.getElementById('imagValue').textContent = imagPart.toFixed(1);
+            drawComplexPlane();
+            drawPolarForm();
+        }
+
+        function drawComplexPlane() {
+            const canvas = document.getElementById('complexPlane');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 400, 400);
+
+            const cx = 200, cy = 200;
+            const scale = 50;
+
+            // Draw grid
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+            ctx.lineWidth = 1;
+            for (let i = -3; i <= 3; i++) {
+                ctx.beginPath();
+                ctx.moveTo(cx + i * scale, 0);
+                ctx.lineTo(cx + i * scale, 400);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(0, cy + i * scale);
+                ctx.lineTo(400, cy + i * scale);
+                ctx.stroke();
+            }
+
+            // Draw axes
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, cy);
+            ctx.lineTo(400, cy);
+            ctx.moveTo(cx, 0);
+            ctx.lineTo(cx, 400);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Arial';
+            ctx.fillText('Real', 360, cy - 10);
+            ctx.fillText('Imaginary', cx + 10, 20);
+
+            // Draw complex number
+            const px = cx + realPart * scale;
+            const py = cy - imagPart * scale;
+
+            // Draw vector
+            ctx.strokeStyle = '#ff6b6b';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(px, py);
+            ctx.stroke();
+
+            // Draw point
+            ctx.fillStyle = '#ff6b6b';
+            ctx.beginPath();
+            ctx.arc(px, py, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Glow
+            const gradient = ctx.createRadialGradient(px, py, 0, px, py, 15);
+            gradient.addColorStop(0, 'rgba(255,107,107,0.8)');
+            gradient.addColorStop(1, 'rgba(255,107,107,0)');
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(px, py, 15, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw projections
+            ctx.strokeStyle = 'rgba(0,212,255,0.5)';
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(px, py);
+            ctx.lineTo(px, cy);
+            ctx.stroke();
+            ctx.strokeStyle = 'rgba(123,44,191,0.5)';
+            ctx.beginPath();
+            ctx.moveTo(px, py);
+            ctx.lineTo(cx, py);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Update info
+            const magnitude = Math.sqrt(realPart * realPart + imagPart * imagPart);
+            const phase = Math.atan2(imagPart, realPart);
+            document.getElementById('complexInfo').innerHTML = 
+                `<strong>z = ${realPart.toFixed(1)} + ${imagPart.toFixed(1)}i</strong><br>` +
+                `|z| = ${magnitude.toFixed(3)}<br>` +
+                `|z|² = ${(magnitude * magnitude).toFixed(3)}`;
+        }
+
+        function drawPolarForm() {
+            const canvas = document.getElementById('polarCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 400, 400);
+
+            const cx = 200, cy = 200;
+            const magnitude = Math.sqrt(realPart * realPart + imagPart * imagPart);
+            const phase = Math.atan2(imagPart, realPart);
+            const scale = 50;
+
+            // Draw circles
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            ctx.lineWidth = 1;
+            for (let r = 1; r <= 3; r++) {
+                ctx.beginPath();
+                ctx.arc(cx, cy, r * scale, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            // Draw axes
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, cy);
+            ctx.lineTo(400, cy);
+            ctx.moveTo(cx, 0);
+            ctx.lineTo(cx, 400);
+            ctx.stroke();
+
+            // Draw angle arc
+            ctx.strokeStyle = '#00d4ff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 40, 0, -phase, phase > 0);
+            ctx.stroke();
+
+            // Draw vector
+            const px = cx + magnitude * scale * Math.cos(phase);
+            const py = cy - magnitude * scale * Math.sin(phase);
+
+            ctx.strokeStyle = '#ff6b6b';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(px, py);
+            ctx.stroke();
+
+            // Draw point
+            ctx.fillStyle = '#ff6b6b';
+            ctx.beginPath();
+            ctx.arc(px, py, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Labels
+            ctx.fillStyle = '#00d4ff';
+            ctx.font = '14px Arial';
+            ctx.fillText('θ', cx + 50, cy - 10);
+            ctx.fillStyle = '#ff6b6b';
+            ctx.fillText('r', (cx + px) / 2 + 10, (cy + py) / 2);
+
+            // Update info
+            document.getElementById('polarInfo').innerHTML = 
+                `<strong>r = ${magnitude.toFixed(3)}</strong><br>` +
+                `<strong>θ = ${(phase * 180 / Math.PI).toFixed(1)}° = ${phase.toFixed(3)} rad</strong>`;
+        }
+
+        function drawOperations() {
+            // Addition visualization
+            const addCanvas = document.getElementById('addCanvas');
+            const addCtx = addCanvas.getContext('2d');
+            addCtx.clearRect(0, 0, 300, 250);
+
+            const cx = 150, cy = 150, scale = 30;
+
+            // Axes
+            addCtx.strokeStyle = 'rgba(255,255,255,0.3)';
+            addCtx.beginPath();
+            addCtx.moveTo(0, cy);
+            addCtx.lineTo(300, cy);
+            addCtx.moveTo(cx, 0);
+            addCtx.lineTo(cx, 250);
+            addCtx.stroke();
+
+            // First vector (1+2i)
+            addCtx.strokeStyle = '#00d4ff';
+            addCtx.lineWidth = 2;
+            addCtx.beginPath();
+            addCtx.moveTo(cx, cy);
+            addCtx.lineTo(cx + 1 * scale, cy - 2 * scale);
+            addCtx.stroke();
+
+            // Second vector (3-1i) from end of first
+            addCtx.strokeStyle = '#7b2cbf';
+            addCtx.beginPath();
+            addCtx.moveTo(cx + 1 * scale, cy - 2 * scale);
+            addCtx.lineTo(cx + 4 * scale, cy - 1 * scale);
+            addCtx.stroke();
+
+            // Result vector (4+1i)
+            addCtx.strokeStyle = '#ff6b6b';
+            addCtx.lineWidth = 3;
+            addCtx.beginPath();
+            addCtx.moveTo(cx, cy);
+            addCtx.lineTo(cx + 4 * scale, cy - 1 * scale);
+            addCtx.stroke();
+
+            // Labels
+            addCtx.fillStyle = '#00d4ff';
+            addCtx.font = '12px Arial';
+            addCtx.fillText('1+2i', cx + 5, cy - 2 * scale - 5);
+            addCtx.fillStyle = '#7b2cbf';
+            addCtx.fillText('3-1i', cx + 2.5 * scale, cy - 1.5 * scale - 5);
+            addCtx.fillStyle = '#ff6b6b';
+            addCtx.fillText('4+1i', cx + 4 * scale + 5, cy - 1 * scale);
+
+            // Multiplication visualization
+            const multCanvas = document.getElementById('multCanvas');
+            const multCtx = multCanvas.getContext('2d');
+            multCtx.clearRect(0, 0, 300, 250);
+
+            // Axes
+            multCtx.strokeStyle = 'rgba(255,255,255,0.3)';
+            multCtx.beginPath();
+            multCtx.moveTo(0, cy);
+            multCtx.lineTo(300, cy);
+            multCtx.moveTo(cx, 0);
+            multCtx.lineTo(cx, 250);
+            multCtx.stroke();
+
+            // First vector (1+2i)
+            const r1 = Math.sqrt(5), theta1 = Math.atan2(2, 1);
+            multCtx.strokeStyle = '#00d4ff';
+            multCtx.lineWidth = 2;
+            multCtx.beginPath();
+            multCtx.moveTo(cx, cy);
+            multCtx.lineTo(cx + r1 * scale * Math.cos(theta1), cy - r1 * scale * Math.sin(theta1));
+            multCtx.stroke();
+
+            // Second vector (3-1i)
+            const r2 = Math.sqrt(10), theta2 = Math.atan2(-1, 3);
+            multCtx.strokeStyle = '#7b2cbf';
+            multCtx.beginPath();
+            multCtx.moveTo(cx, cy);
+            multCtx.lineTo(cx + r2 * scale * Math.cos(theta2), cy - r2 * scale * Math.sin(theta2));
+            multCtx.stroke();
+
+            // Result (5+5i) - magnitudes multiply, angles add
+            const r3 = Math.sqrt(50), theta3 = theta1 + theta2;
+            multCtx.strokeStyle = '#ff6b6b';
+            multCtx.lineWidth = 3;
+            multCtx.beginPath();
+            multCtx.moveTo(cx, cy);
+            multCtx.lineTo(cx + r3 * scale * 0.5 * Math.cos(theta3), cy - r3 * scale * 0.5 * Math.sin(theta3));
+            multCtx.stroke();
+
+            // Labels
+            multCtx.fillStyle = '#00d4ff';
+            multCtx.font = '12px Arial';
+            multCtx.fillText('1+2i', cx + 20, cy - 60);
+            multCtx.fillStyle = '#7b2cbf';
+            multCtx.fillText('3-1i', cx + 80, cy + 20);
+            multCtx.fillStyle = '#ff6b6b';
+            multCtx.fillText('5+5i', cx + 50, cy - 80);
+        }
+
+        function drawConjugate() {
+            const canvas = document.getElementById('conjugateCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 350, 350);
+
+            const cx = 175, cy = 175, scale = 40;
+
+            // Axes
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, cy);
+            ctx.lineTo(350, cy);
+            ctx.moveTo(cx, 0);
+            ctx.lineTo(cx, 350);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Arial';
+            ctx.fillText('Real', 310, cy - 10);
+            ctx.fillText('Imag', cx + 10, 20);
+
+            // Original z = 1 + 2i
+            const px = cx + 1 * scale;
+            const py = cy - 2 * scale;
+            ctx.strokeStyle = '#00d4ff';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(px, py);
+            ctx.stroke();
+            ctx.fillStyle = '#00d4ff';
+            ctx.beginPath();
+            ctx.arc(px, py, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillText('z = 1+2i', px + 10, py - 10);
+
+            // Conjugate z* = 1 - 2i
+            const pxc = cx + 1 * scale;
+            const pyc = cy + 2 * scale;
+            ctx.strokeStyle = '#7b2cbf';
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(pxc, pyc);
+            ctx.stroke();
+            ctx.fillStyle = '#7b2cbf';
+            ctx.beginPath();
+            ctx.arc(pxc, pyc, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillText('z* = 1-2i', pxc + 10, pyc + 20);
+
+            // Mirror line (real axis)
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(px, py);
+            ctx.lineTo(pxc, pyc);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        let conjugateAnimating = false;
+        function animateConjugate() {
+            if (conjugateAnimating) return;
+            conjugateAnimating = true;
+            
+            const canvas = document.getElementById('conjugateCanvas');
+            const ctx = canvas.getContext('2d');
+            const cx = 175, cy = 175, scale = 40;
+            let progress = 0;
+
+            function animate() {
+                ctx.clearRect(0, 0, 350, 350);
+
+                // Axes
+                ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(0, cy);
+                ctx.lineTo(350, cy);
+                ctx.moveTo(cx, 0);
+                ctx.lineTo(cx, 350);
+                ctx.stroke();
+
+                // Animated point
+                const startY = cy - 2 * scale;
+                const endY = cy + 2 * scale;
+                const currentY = startY + (endY - startY) * progress;
+                const px = cx + 1 * scale;
+
+                ctx.strokeStyle = '#ff6b6b';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(px, currentY);
+                ctx.stroke();
+
+                ctx.fillStyle = '#ff6b6b';
+                ctx.beginPath();
+                ctx.arc(px, currentY, 8, 0, Math.PI * 2);
+                ctx.fill();
+
+                progress += 0.02;
+                if (progress <= 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    conjugateAnimating = false;
+                    drawConjugate();
+                }
+            }
+            animate();
+        }
+
+        function drawPhase() {
+            const canvas = document.getElementById('phaseCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 350, 300);
+
+            const cx = 175, cy = 150, r = 80;
+
+            // Draw two states with same magnitude but different phase
+            // |+⟩ state
+            ctx.strokeStyle = '#00d4ff';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(cx - 100, cy);
+            ctx.lineTo(cx - 100 + 60, cy);
+            ctx.stroke();
+            ctx.fillStyle = '#00d4ff';
+            ctx.beginPath();
+            ctx.arc(cx - 100 + 60, cy, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.font = '14px Arial';
+            ctx.fillText('|+⟩: +1 phase', cx - 120, cy + 40);
+
+            // |-⟩ state
+            ctx.strokeStyle = '#7b2cbf';
+            ctx.beginPath();
+            ctx.moveTo(cx + 100, cy);
+            ctx.lineTo(cx + 100 - 60, cy);
+            ctx.stroke();
+            ctx.fillStyle = '#7b2cbf';
+            ctx.beginPath();
+            ctx.arc(cx + 100 - 60, cy, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillText('|-⟩: -1 phase', cx + 60, cy + 40);
+
+            // Same probability
+            ctx.fillStyle = '#fff';
+            ctx.font = '12px Arial';
+            ctx.fillText('Same |amplitude|² = 0.5', cx - 50, cy + 80);
+            ctx.fillText('Different interference!', cx - 45, cy + 100);
+        }
+
+        let interferenceAnimating = true;
+        let interferencePhase = 0;
+
+        function drawInterference() {
+            const canvas = document.getElementById('interferenceCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 350, 300);
+
+            // Draw two waves
+            ctx.lineWidth = 2;
+            
+            // Wave 1
+            ctx.strokeStyle = '#00d4ff';
+            ctx.beginPath();
+            for (let x = 0; x < 350; x++) {
+                const y = 100 + 30 * Math.sin(x / 20 + interferencePhase);
+                if (x === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            // Wave 2
+            const phaseOffset = interferenceMode === 'constructive' ? 0 : Math.PI;
+            ctx.strokeStyle = '#7b2cbf';
+            ctx.beginPath();
+            for (let x = 0; x < 350; x++) {
+                const y = 100 + 30 * Math.sin(x / 20 + interferencePhase + phaseOffset);
+                if (x === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            // Sum wave
+            ctx.strokeStyle = '#ff6b6b';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (let x = 0; x < 350; x++) {
+                const y1 = 30 * Math.sin(x / 20 + interferencePhase);
+                const y2 = 30 * Math.sin(x / 20 + interferencePhase + phaseOffset);
+                const y = 220 + (y1 + y2);
+                if (x === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#fff';
+            ctx.font = '12px Arial';
+            ctx.fillText('Wave 1', 10, 70);
+            ctx.fillText('Wave 2', 10, 130);
+            ctx.fillText('Sum: ' + (interferenceMode === 'constructive' ? 'CONSTRUCTIVE' : 'DESTRUCTIVE'), 10, 280);
+
+            if (interferenceAnimating) {
+                interferencePhase += 0.05;
+                requestAnimationFrame(drawInterference);
+            }
+        }
+
+        function toggleInterference() {
+            interferenceMode = interferenceMode === 'constructive' ? 'destructive' : 'constructive';
+        }
+
+        // Initialize
+        updateComplex();
+        drawOperations();
+        drawConjugate();
+        drawPhase();
+        drawInterference();
+    </script>
+</body>
+</html>

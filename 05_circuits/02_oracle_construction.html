@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oracle Construction - Quantum Circuits</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle { text-align: center; color: #888; margin-bottom: 30px; font-size: 1.2em; }
+        .section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .section h2 { color: #00d4ff; margin-bottom: 20px; font-size: 1.8em; }
+        .visualization-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-top: 20px;
+        }
+        .viz-card {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+        }
+        .viz-card h3 { color: #7b2cbf; margin-bottom: 15px; }
+        canvas { border-radius: 10px; background: rgba(0,0,0,0.5); }
+        .equation {
+            font-family: 'Times New Roman', serif;
+            font-size: 1.5em;
+            text-align: center;
+            padding: 20px;
+            background: rgba(0,212,255,0.1);
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .explanation {
+            background: rgba(123,44,191,0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            line-height: 1.8;
+        }
+        .code-block {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        .code-block .keyword { color: #569cd6; }
+        .code-block .function { color: #dcdcaa; }
+        .code-block .comment { color: #6a9955; }
+        .code-block .number { color: #b5cea8; }
+        button {
+            background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,212,255,0.4);
+        }
+        .nav-buttons { display: flex; justify-content: space-between; margin-top: 30px; }
+        .nav-btn {
+            background: rgba(255,255,255,0.1);
+            padding: 15px 30px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #00d4ff;
+            transition: all 0.3s ease;
+        }
+        .nav-btn:hover { background: rgba(0,212,255,0.2); }
+        .truth-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .truth-table th, .truth-table td {
+            padding: 12px;
+            border: 1px solid rgba(255,255,255,0.2);
+            text-align: center;
+        }
+        .truth-table th {
+            background: rgba(0,212,255,0.2);
+            color: #00d4ff;
+        }
+        .oracle-type {
+            padding: 20px;
+            border-radius: 15px;
+            margin: 15px 0;
+        }
+        .constant { background: rgba(0,255,0,0.2); border: 2px solid #0f0; }
+        .balanced { background: rgba(255,107,107,0.2); border: 2px solid #ff6b6b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Oracle Construction</h1>
+        <p class="subtitle">Building the Black Box for Quantum Algorithms</p>
+
+        <div class="section">
+            <h2>What is a Quantum Oracle?</h2>
+            <p class="explanation">
+                A <strong>quantum oracle</strong> (also called a black box) is a unitary operator that encodes a classical function f(x) 
+                into a quantum circuit. The oracle implements the transformation |x⟩|y⟩ → |x⟩|y⊕f(x)⟩, where ⊕ is XOR.
+                This allows quantum algorithms to query the function in superposition, evaluating f(x) for all inputs simultaneously.
+            </p>
+            
+            <div class="equation">
+                U<sub>f</sub>|x⟩|y⟩ = |x⟩|y ⊕ f(x)⟩
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Oracle Types in Deutsch-Jozsa</h2>
+            <div class="visualization-grid">
+                <div class="viz-card">
+                    <h3>Constant Function</h3>
+                    <div class="oracle-type constant">
+                        <p><strong>f(x) = 0 for all x</strong></p>
+                        <p>OR</p>
+                        <p><strong>f(x) = 1 for all x</strong></p>
+                    </div>
+                    <table class="truth-table">
+                        <tr><th>x</th><th>f(x) = 0</th><th>f(x) = 1</th></tr>
+                        <tr><td>0</td><td>0</td><td>1</td></tr>
+                        <tr><td>1</td><td>0</td><td>1</td></tr>
+                    </table>
+                    <canvas id="constantCanvas" width="300" height="150"></canvas>
+                </div>
+                
+                <div class="viz-card">
+                    <h3>Balanced Function</h3>
+                    <div class="oracle-type balanced">
+                        <p><strong>f(x) = 0 for half of inputs</strong></p>
+                        <p><strong>f(x) = 1 for other half</strong></p>
+                    </div>
+                    <table class="truth-table">
+                        <tr><th>x</th><th>f(x) = x</th><th>f(x) = NOT x</th></tr>
+                        <tr><td>0</td><td>0</td><td>1</td></tr>
+                        <tr><td>1</td><td>1</td><td>0</td></tr>
+                    </table>
+                    <canvas id="balancedCanvas" width="300" height="150"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Oracle Circuit Construction</h2>
+            <div class="viz-card" style="max-width: 900px; margin: 0 auto;">
+                <h3>Select Oracle Type</h3>
+                <div style="margin: 20px 0;">
+                    <button onclick="showOracle('f0')">f(x) = 0</button>
+                    <button onclick="showOracle('f1')">f(x) = 1</button>
+                    <button onclick="showOracle('fx')">f(x) = x</button>
+                    <button onclick="showOracle('fnotx')">f(x) = NOT x</button>
+                </div>
+                <canvas id="oracleCircuitCanvas" width="800" height="250"></canvas>
+                <div id="oracleDescription" style="margin-top: 15px;"></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Phase Kickback</h2>
+            <p class="explanation">
+                When the ancilla qubit is in state |-⟩ = (|0⟩-|1⟩)/√2, the oracle creates a <strong>phase kickback</strong>.
+                Instead of flipping the ancilla, the phase (-1)^f(x) is "kicked back" to the input register.
+                This is the key mechanism that allows Deutsch-Jozsa to work.
+            </p>
+            
+            <div class="equation">
+                U<sub>f</sub>|x⟩|-⟩ = (-1)<sup>f(x)</sup>|x⟩|-⟩
+            </div>
+
+            <div class="visualization-grid">
+                <div class="viz-card">
+                    <h3>Phase Kickback Visualization</h3>
+                    <canvas id="kickbackCanvas" width="400" height="300"></canvas>
+                    <button onclick="animateKickback()" style="margin-top: 15px;">Animate Phase Kickback</button>
+                </div>
+                
+                <div class="viz-card">
+                    <h3>Why It Works</h3>
+                    <div class="explanation" style="text-align: left; font-size: 0.9em;">
+                        <p>When y = |-⟩ = (|0⟩-|1⟩)/√2:</p>
+                        <p style="margin: 10px 0;">|y⊕0⟩ = |y⟩ = |-⟩</p>
+                        <p style="margin: 10px 0;">|y⊕1⟩ = |NOT y⟩ = -|-⟩</p>
+                        <p style="margin-top: 15px;">So: |x⟩|y⊕f(x)⟩ = (-1)^f(x)|x⟩|-⟩</p>
+                        <p style="margin-top: 15px; color: #ffd93d;">The phase moves to the input qubit!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Oracle Matrix Representation</h2>
+            <div class="visualization-grid">
+                <div class="viz-card">
+                    <h3>f(x) = 0 (Identity)</h3>
+                    <canvas id="matrix0Canvas" width="250" height="250"></canvas>
+                    <p style="color: #aaa; margin-top: 10px;">U<sub>f</sub> = I (does nothing)</p>
+                </div>
+                
+                <div class="viz-card">
+                    <h3>f(x) = 1 (X on ancilla)</h3>
+                    <canvas id="matrix1Canvas" width="250" height="250"></canvas>
+                    <p style="color: #aaa; margin-top: 10px;">U<sub>f</sub> = I⊗X</p>
+                </div>
+                
+                <div class="viz-card">
+                    <h3>f(x) = x (CNOT)</h3>
+                    <canvas id="matrixXCanvas" width="250" height="250"></canvas>
+                    <p style="color: #aaa; margin-top: 10px;">U<sub>f</sub> = CNOT</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Python Implementation</h2>
+            <div class="code-block">
+<span class="keyword">import</span> numpy <span class="keyword">as</span> np
+
+<span class="keyword">def</span> <span class="function">oracle_Uf</span>(f, n):
+    <span class="string">"""
+    Construct oracle matrix for function f on n input qubits.
+    f: function that takes integer x and returns 0 or 1
+    n: number of input qubits
+    Returns: 2^(n+1) x 2^(n+1) unitary matrix
+    """</span>
+    N = <span class="number">2</span>**(n+<span class="number">1</span>)  <span class="comment"># Total dimension (n input + 1 ancilla)</span>
+    Uf = np.zeros((N, N), dtype=<span class="keyword">complex</span>)
+    
+    <span class="keyword">for</span> x <span class="keyword">in</span> <span class="function">range</span>(<span class="number">2</span>**n):  <span class="comment"># For each input state</span>
+        <span class="keyword">for</span> y <span class="keyword">in</span> [<span class="number">0</span>, <span class="number">1</span>]:  <span class="comment"># For each ancilla state</span>
+            <span class="comment"># Input index: |x⟩|y⟩</span>
+            input_idx = (x << <span class="number">1</span>) | y
+            <span class="comment"># Output index: |x⟩|y⊕f(x)⟩</span>
+            output_idx = (x << <span class="number">1</span>) | (y ^ f(x))
+            Uf[output_idx, input_idx] = <span class="number">1</span>
+    
+    <span class="keyword">return</span> Uf
+
+<span class="comment"># Define different functions</span>
+f_constant_0 = <span class="keyword">lambda</span> x: <span class="number">0</span>  <span class="comment"># Always 0</span>
+f_constant_1 = <span class="keyword">lambda</span> x: <span class="number">1</span>  <span class="comment"># Always 1</span>
+f_balanced_x = <span class="keyword">lambda</span> x: x & <span class="number">1</span>  <span class="comment"># f(x) = x (last bit)</span>
+f_balanced_notx = <span class="keyword">lambda</span> x: <span class="number">1</span> - (x & <span class="number">1</span>)  <span class="comment"># f(x) = NOT x</span>
+
+<span class="comment"># Build oracles for 1-qubit input</span>
+Uf_0 = oracle_Uf(f_constant_0, <span class="number">1</span>)
+Uf_1 = oracle_Uf(f_constant_1, <span class="number">1</span>)
+Uf_x = oracle_Uf(f_balanced_x, <span class="number">1</span>)
+
+<span class="function">print</span>(<span class="string">"Oracle for f(x)=0:\n"</span>, Uf_0)
+<span class="comment"># Identity matrix</span>
+
+<span class="function">print</span>(<span class="string">"Oracle for f(x)=x (CNOT):\n"</span>, Uf_x)
+<span class="comment"># CNOT matrix</span>
+
+<span class="comment"># Verify phase kickback</span>
+ket_minus = (<span class="number">1</span>/np.sqrt(<span class="number">2</span>)) * np.array([[<span class="number">1</span>], [-<span class="number">1</span>]], dtype=<span class="keyword">complex</span>)
+ket0 = np.array([[<span class="number">1</span>], [<span class="number">0</span>]], dtype=<span class="keyword">complex</span>)
+ket1 = np.array([[<span class="number">0</span>], [<span class="number">1</span>]], dtype=<span class="keyword">complex</span>)
+
+<span class="comment"># |0⟩|-⟩ through oracle with f(x)=x</span>
+state = np.kron(ket0, ket_minus)
+result = Uf_x @ state
+<span class="function">print</span>(<span class="string">"Uf|0⟩|-⟩ ="</span>, result.flatten())
+<span class="comment"># Output: [0.707 -0.707 0 0] = |0⟩|-⟩ (no phase change, f(0)=0)</span>
+
+<span class="comment"># |1⟩|-⟩ through oracle with f(x)=x</span>
+state = np.kron(ket1, ket_minus)
+result = Uf_x @ state
+<span class="function">print</span>(<span class="string">"Uf|1⟩|-⟩ ="</span>, result.flatten())
+<span class="comment"># Output: [0 0 -0.707 0.707] = -|1⟩|-⟩ (phase flip! f(1)=1)</span>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <a href="01_multi_qubit.html" class="nav-btn">← Previous: Multi-Qubit Systems</a>
+            <a href="../06_algorithm/01_deutsch_jozsa.html" class="nav-btn">Next: Deutsch-Jozsa Algorithm →</a>
+        </div>
+    </div>
+
+    <script>
+        function drawConstantOracle() {
+            const canvas = document.getElementById('constantCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 300, 150);
+
+            // Draw flat line (constant output)
+            ctx.strokeStyle = '#0f0';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(50, 100);
+            ctx.lineTo(250, 100);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#fff';
+            ctx.font = '12px Arial';
+            ctx.fillText('x', 150, 140);
+            ctx.fillText('f(x)', 10, 75);
+            ctx.fillText('0', 30, 105);
+            ctx.fillText('1', 30, 55);
+
+            // Axes
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(50, 30);
+            ctx.lineTo(50, 120);
+            ctx.lineTo(260, 120);
+            ctx.stroke();
+        }
+
+        function drawBalancedOracle() {
+            const canvas = document.getElementById('balancedCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 300, 150);
+
+            // Draw step function (balanced)
+            ctx.strokeStyle = '#ff6b6b';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(50, 100);
+            ctx.lineTo(150, 100);
+            ctx.lineTo(150, 50);
+            ctx.lineTo(250, 50);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#fff';
+            ctx.font = '12px Arial';
+            ctx.fillText('x', 150, 140);
+            ctx.fillText('f(x)', 10, 75);
+            ctx.fillText('0', 30, 105);
+            ctx.fillText('1', 30, 55);
+            ctx.fillText('0', 90, 130);
+            ctx.fillText('1', 200, 130);
+
+            // Axes
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(50, 30);
+            ctx.lineTo(50, 120);
+            ctx.lineTo(260, 120);
+            ctx.stroke();
+        }
+
+        function showOracle(type) {
+            const canvas = document.getElementById('oracleCircuitCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 800, 250);
+
+            // Draw qubit lines
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(100, 80);
+            ctx.lineTo(700, 80);
+            ctx.moveTo(100, 160);
+            ctx.lineTo(700, 160);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#fff';
+            ctx.font = '16px Arial';
+            ctx.fillText('|x⟩', 60, 85);
+            ctx.fillText('|y⟩', 60, 165);
+
+            let description = '';
+
+            switch(type) {
+                case 'f0':
+                    // f(x) = 0: Identity (no gates)
+                    ctx.fillStyle = 'rgba(0,255,0,0.2)';
+                    ctx.fillRect(300, 50, 200, 150);
+                    ctx.strokeStyle = '#0f0';
+                    ctx.strokeRect(300, 50, 200, 150);
+                    ctx.fillStyle = '#0f0';
+                    ctx.font = '20px Arial';
+                    ctx.fillText('U_f (Identity)', 330, 130);
+                    description = 'f(x) = 0: No gates needed. Output y⊕0 = y (unchanged).';
+                    break;
+
+                case 'f1':
+                    // f(x) = 1: X gate on ancilla
+                    ctx.fillStyle = 'rgba(255,107,107,0.2)';
+                    ctx.fillRect(300, 50, 200, 150);
+                    ctx.strokeStyle = '#ff6b6b';
+                    ctx.strokeRect(300, 50, 200, 150);
+                    
+                    // X gate on ancilla
+                    ctx.fillStyle = '#ff6b6b';
+                    ctx.fillRect(380, 140, 40, 40);
+                    ctx.fillStyle = '#000';
+                    ctx.font = 'bold 18px Arial';
+                    ctx.fillText('X', 392, 167);
+                    
+                    description = 'f(x) = 1: Apply X to ancilla. Output y⊕1 = NOT y.';
+                    break;
+
+                case 'fx':
+                    // f(x) = x: CNOT
+                    ctx.fillStyle = 'rgba(0,212,255,0.2)';
+                    ctx.fillRect(300, 50, 200, 150);
+                    ctx.strokeStyle = '#00d4ff';
+                    ctx.strokeRect(300, 50, 200, 150);
+                    
+                    // CNOT
+                    ctx.strokeStyle = '#00d4ff';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.moveTo(400, 80);
+                    ctx.lineTo(400, 160);
+                    ctx.stroke();
+
+                    // Control dot
+                    ctx.fillStyle = '#00d4ff';
+                    ctx.beginPath();
+                    ctx.arc(400, 80, 8, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Target
+                    ctx.strokeStyle = '#00d4ff';
+                    ctx.beginPath();
+                    ctx.arc(400, 160, 15, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(400, 145);
+                    ctx.lineTo(400, 175);
+                    ctx.moveTo(385, 160);
+                    ctx.lineTo(415, 160);
+                    ctx.stroke();
+                    
+                    description = 'f(x) = x: CNOT gate. If x=1, flip y. Output y⊕x.';
+                    break;
+
+                case 'fnotx':
+                    // f(x) = NOT x: X then CNOT then X
+                    ctx.fillStyle = 'rgba(123,44,191,0.2)';
+                    ctx.fillRect(250, 50, 300, 150);
+                    ctx.strokeStyle = '#7b2cbf';
+                    ctx.strokeRect(250, 50, 300, 150);
+                    
+                    // X gate before
+                    ctx.fillStyle = '#ff6b6b';
+                    ctx.fillRect(280, 60, 35, 35);
+                    ctx.fillStyle = '#000';
+                    ctx.font = 'bold 14px Arial';
+                    ctx.fillText('X', 290, 85);
+
+                    // CNOT
+                    ctx.strokeStyle = '#00d4ff';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.moveTo(400, 80);
+                    ctx.lineTo(400, 160);
+                    ctx.stroke();
+                    ctx.fillStyle = '#00d4ff';
+                    ctx.beginPath();
+                    ctx.arc(400, 80, 8, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#00d4ff';
+                    ctx.beginPath();
+                    ctx.arc(400, 160, 15, 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    // X gate after
+                    ctx.fillStyle = '#ff6b6b';
+                    ctx.fillRect(480, 60, 35, 35);
+                    ctx.fillStyle = '#000';
+                    ctx.fillText('X', 490, 85);
+                    
+                    description = 'f(x) = NOT x: X-CNOT-X. Flip control, apply CNOT, flip back.';
+                    break;
+            }
+
+            // Output labels
+            ctx.fillStyle = '#fff';
+            ctx.font = '16px Arial';
+            ctx.fillText('|x⟩', 720, 85);
+            ctx.fillText('|y⊕f(x)⟩', 700, 165);
+
+            document.getElementById('oracleDescription').innerHTML = `<strong>${description}</strong>`;
+        }
+
+        let kickbackAnimating = false;
+        function animateKickback() {
+            if (kickbackAnimating) return;
+            kickbackAnimating = true;
+
+            const canvas = document.getElementById('kickbackCanvas');
+            const ctx = canvas.getContext('2d');
+            let frame = 0;
+
+            function animate() {
+                ctx.clearRect(0, 0, 400, 300);
+
+                // Draw input state
+                ctx.fillStyle = '#00d4ff';
+                ctx.beginPath();
+                ctx.arc(80, 100, 30, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#000';
+                ctx.font = 'bold 14px Arial';
+                ctx.fillText('|x⟩', 68, 105);
+
+                // Draw ancilla state
+                ctx.fillStyle = '#ff6b6b';
+                ctx.beginPath();
+                ctx.arc(80, 200, 30, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#000';
+                ctx.fillText('|-⟩', 68, 205);
+
+                // Draw oracle box
+                ctx.fillStyle = 'rgba(123,44,191,0.3)';
+                ctx.fillRect(150, 70, 100, 160);
+                ctx.strokeStyle = '#7b2cbf';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(150, 70, 100, 160);
+                ctx.fillStyle = '#7b2cbf';
+                ctx.font = '16px Arial';
+                ctx.fillText('U_f', 185, 155);
+
+                // Animate phase kickback
+                if (frame < 30) {
+                    // Phase going down
+                    const y = 100 + (frame / 30) * 100;
+                    ctx.fillStyle = '#ffd93d';
+                    ctx.beginPath();
+                    ctx.arc(200, y, 10, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#000';
+                    ctx.font = '12px Arial';
+                    ctx.fillText('(-1)^f', 215, y + 5);
+                } else if (frame < 60) {
+                    // Phase bouncing back up
+                    const progress = (frame - 30) / 30;
+                    const y = 200 - progress * 100;
+                    ctx.fillStyle = '#ffd93d';
+                    ctx.beginPath();
+                    ctx.arc(200, y, 10, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Show phase on input
+                    if (progress > 0.5) {
+                        ctx.strokeStyle = '#ffd93d';
+                        ctx.lineWidth = 3;
+                        ctx.beginPath();
+                        ctx.arc(80, 100, 35, 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
+                } else {
+                    // Final state
+                    ctx.strokeStyle = '#ffd93d';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(80, 100, 35, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.fillStyle = '#ffd93d';
+                    ctx.font = '12px Arial';
+                    ctx.fillText('(-1)^f(x)', 55, 60);
+                }
+
+                // Output states
+                ctx.fillStyle = '#00d4ff';
+                ctx.beginPath();
+                ctx.arc(320, 100, 30, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#000';
+                ctx.font = 'bold 14px Arial';
+                ctx.fillText('|x⟩', 308, 105);
+
+                ctx.fillStyle = '#ff6b6b';
+                ctx.beginPath();
+                ctx.arc(320, 200, 30, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#000';
+                ctx.fillText('|-⟩', 308, 205);
+
+                // Arrow
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(120, 150);
+                ctx.lineTo(140, 150);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(260, 150);
+                ctx.lineTo(280, 150);
+                ctx.stroke();
+
+                frame++;
+                if (frame < 90) {
+                    requestAnimationFrame(animate);
+                } else {
+                    kickbackAnimating = false;
+                }
+            }
+            animate();
+        }
+
+        function drawMatrix(canvasId, matrix, label) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 250, 250);
+
+            const cellSize = 50;
+            const startX = 25;
+            const startY = 25;
+
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) {
+                    const val = matrix[i][j];
+                    const x = startX + j * cellSize;
+                    const y = startY + i * cellSize;
+
+                    // Color based on value
+                    if (val === 1) {
+                        ctx.fillStyle = 'rgba(0,212,255,0.5)';
+                    } else {
+                        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+                    }
+                    ctx.fillRect(x, y, cellSize - 2, cellSize - 2);
+
+                    // Value
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '14px Arial';
+                    ctx.fillText(val, x + 20, y + 30);
+                }
+            }
+
+            // Labels
+            ctx.fillStyle = '#888';
+            ctx.font = '10px Arial';
+            const labels = ['|00⟩', '|01⟩', '|10⟩', '|11⟩'];
+            for (let i = 0; i < 4; i++) {
+                ctx.fillText(labels[i], startX + i * cellSize + 10, startY + 4 * cellSize + 15);
+            }
+        }
+
+        // Initialize
+        drawConstantOracle();
+        drawBalancedOracle();
+        showOracle('fx');
+        
+        // Identity matrix for f(x)=0
+        drawMatrix('matrix0Canvas', [
+            [1,0,0,0],
+            [0,1,0,0],
+            [0,0,1,0],
+            [0,0,0,1]
+        ]);
+        
+        // I⊗X for f(x)=1
+        drawMatrix('matrix1Canvas', [
+            [0,1,0,0],
+            [1,0,0,0],
+            [0,0,0,1],
+            [0,0,1,0]
+        ]);
+        
+        // CNOT for f(x)=x
+        drawMatrix('matrixXCanvas', [
+            [1,0,0,0],
+            [0,1,0,0],
+            [0,0,0,1],
+            [0,0,1,0]
+        ]);
+    </script>
+</body>
+</html>

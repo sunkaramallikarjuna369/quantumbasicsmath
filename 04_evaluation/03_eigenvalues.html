@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eigenvalues & Eigenvectors - Quantum Evaluation</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle { text-align: center; color: #888; margin-bottom: 30px; font-size: 1.2em; }
+        .section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .section h2 { color: #00d4ff; margin-bottom: 20px; font-size: 1.8em; }
+        .visualization-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-top: 20px;
+        }
+        .viz-card {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+        }
+        .viz-card h3 { color: #7b2cbf; margin-bottom: 15px; }
+        canvas { border-radius: 10px; background: rgba(0,0,0,0.5); }
+        .equation {
+            font-family: 'Times New Roman', serif;
+            font-size: 1.5em;
+            text-align: center;
+            padding: 20px;
+            background: rgba(0,212,255,0.1);
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .explanation {
+            background: rgba(123,44,191,0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            line-height: 1.8;
+        }
+        .code-block {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        .code-block .keyword { color: #569cd6; }
+        .code-block .function { color: #dcdcaa; }
+        .code-block .comment { color: #6a9955; }
+        .code-block .number { color: #b5cea8; }
+        button {
+            background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,212,255,0.4);
+        }
+        .nav-buttons { display: flex; justify-content: space-between; margin-top: 30px; }
+        .nav-btn {
+            background: rgba(255,255,255,0.1);
+            padding: 15px 30px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #00d4ff;
+            transition: all 0.3s ease;
+        }
+        .nav-btn:hover { background: rgba(0,212,255,0.2); }
+        .eigen-display {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        .eigen-box {
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            min-width: 150px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Eigenvalues & Eigenvectors</h1>
+        <p class="subtitle">The Special States of Quantum Operators</p>
+
+        <div class="section">
+            <h2>What are Eigenvalues and Eigenvectors?</h2>
+            <p class="explanation">
+                An <strong>eigenvector</strong> |v⟩ of an operator A is a special vector that only gets scaled (not rotated) when A acts on it.
+                The scaling factor is called the <strong>eigenvalue</strong> λ. In quantum mechanics, eigenvalues represent possible 
+                measurement outcomes, and eigenvectors represent the states that give those outcomes with certainty.
+            </p>
+            
+            <div class="equation">
+                A|v⟩ = λ|v⟩ &nbsp;&nbsp; (Eigenvalue Equation)
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Eigenvalues of Pauli-Z Gate</h2>
+            <p class="explanation">
+                The Z gate has eigenvalues +1 and -1, with eigenvectors |0⟩ and |1⟩. This means measuring in the Z-basis 
+                (computational basis) gives outcomes 0 or 1, corresponding to eigenvalues +1 and -1.
+            </p>
+            
+            <div class="eigen-display">
+                <div class="eigen-box" style="background: rgba(0,212,255,0.3);">
+                    <h3>Eigenvalue: +1</h3>
+                    <p>Eigenvector: |0⟩</p>
+                    <p style="font-size: 0.9em; color: #aaa;">Z|0⟩ = (+1)|0⟩</p>
+                </div>
+                <div class="eigen-box" style="background: rgba(123,44,191,0.3);">
+                    <h3>Eigenvalue: -1</h3>
+                    <p>Eigenvector: |1⟩</p>
+                    <p style="font-size: 0.9em; color: #aaa;">Z|1⟩ = (-1)|1⟩</p>
+                </div>
+            </div>
+
+            <div class="visualization-grid">
+                <div class="viz-card">
+                    <h3>Z Gate Action on |0⟩</h3>
+                    <canvas id="z0Canvas" width="300" height="250"></canvas>
+                    <p style="color: #aaa; margin-top: 10px;">
+                        Z|0⟩ = |0⟩ (unchanged, λ=+1)
+                    </p>
+                </div>
+                
+                <div class="viz-card">
+                    <h3>Z Gate Action on |1⟩</h3>
+                    <canvas id="z1Canvas" width="300" height="250"></canvas>
+                    <p style="color: #aaa; margin-top: 10px;">
+                        Z|1⟩ = -|1⟩ (phase flip, λ=-1)
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Eigenvalues of Other Gates</h2>
+            <div class="visualization-grid">
+                <div class="viz-card">
+                    <h3>Pauli-X Eigenvalues</h3>
+                    <div class="eigen-display">
+                        <div class="eigen-box" style="background: rgba(255,217,61,0.3);">
+                            <p>λ = +1</p>
+                            <p>|+⟩ = (|0⟩+|1⟩)/√2</p>
+                        </div>
+                        <div class="eigen-box" style="background: rgba(255,107,107,0.3);">
+                            <p>λ = -1</p>
+                            <p>|-⟩ = (|0⟩-|1⟩)/√2</p>
+                        </div>
+                    </div>
+                    <canvas id="xEigenCanvas" width="300" height="200"></canvas>
+                </div>
+                
+                <div class="viz-card">
+                    <h3>Hadamard Eigenvalues</h3>
+                    <div class="eigen-display">
+                        <div class="eigen-box" style="background: rgba(0,255,0,0.3);">
+                            <p>λ = +1</p>
+                            <p>cos(π/8)|0⟩+sin(π/8)|1⟩</p>
+                        </div>
+                        <div class="eigen-box" style="background: rgba(255,0,0,0.3);">
+                            <p>λ = -1</p>
+                            <p>sin(π/8)|0⟩-cos(π/8)|1⟩</p>
+                        </div>
+                    </div>
+                    <canvas id="hEigenCanvas" width="300" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Interactive Eigenvalue Explorer</h2>
+            <div class="viz-card" style="max-width: 700px; margin: 0 auto;">
+                <h3>Select a Gate</h3>
+                <div style="margin: 20px 0;">
+                    <button onclick="showEigen('Z')">Pauli-Z</button>
+                    <button onclick="showEigen('X')">Pauli-X</button>
+                    <button onclick="showEigen('Y')">Pauli-Y</button>
+                    <button onclick="showEigen('H')">Hadamard</button>
+                </div>
+                <canvas id="eigenCanvas" width="600" height="300"></canvas>
+                <div id="eigenInfo" style="margin-top: 15px;"></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Physical Meaning</h2>
+            <div class="explanation">
+                <p style="margin-bottom: 15px;">
+                    <strong>Measurement Outcomes:</strong> When you measure an observable (Hermitian operator), you always get one of its eigenvalues.
+                </p>
+                <p style="margin-bottom: 15px;">
+                    <strong>Definite States:</strong> If a system is in an eigenstate of an observable, measuring that observable gives the corresponding eigenvalue with 100% probability.
+                </p>
+                <p style="margin-bottom: 15px;">
+                    <strong>Superposition:</strong> A general state is a superposition of eigenstates. The probability of each outcome is |⟨eigenstate|ψ⟩|².
+                </p>
+                <p>
+                    <strong>Unitary Eigenvalues:</strong> For unitary operators (quantum gates), all eigenvalues have magnitude 1 (they lie on the unit circle in the complex plane).
+                </p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Python Implementation</h2>
+            <div class="code-block">
+<span class="keyword">import</span> numpy <span class="keyword">as</span> np
+
+<span class="comment"># Define Pauli-Z gate</span>
+Z = np.array([[<span class="number">1</span>, <span class="number">0</span>], [<span class="number">0</span>, -<span class="number">1</span>]], dtype=<span class="keyword">complex</span>)
+
+<span class="comment"># Compute eigenvalues and eigenvectors</span>
+eigenvalues, eigenvectors = np.linalg.eig(Z)
+
+<span class="function">print</span>(<span class="string">"Z eigenvalues:"</span>, eigenvalues)
+<span class="comment"># Output: [ 1. -1.]</span>
+
+<span class="function">print</span>(<span class="string">"Z eigenvectors:\n"</span>, eigenvectors)
+<span class="comment"># Output: [[1. 0.]   (columns are eigenvectors)
+#          [0. 1.]]</span>
+
+<span class="comment"># Verify: Z|0⟩ = (+1)|0⟩</span>
+ket0 = np.array([[<span class="number">1</span>], [<span class="number">0</span>]], dtype=<span class="keyword">complex</span>)
+result = Z @ ket0
+<span class="function">print</span>(<span class="string">"Z|0⟩ ="</span>, result.flatten())  <span class="comment"># [1 0] = |0⟩</span>
+
+<span class="comment"># Verify: Z|1⟩ = (-1)|1⟩</span>
+ket1 = np.array([[<span class="number">0</span>], [<span class="number">1</span>]], dtype=<span class="keyword">complex</span>)
+result = Z @ ket1
+<span class="function">print</span>(<span class="string">"Z|1⟩ ="</span>, result.flatten())  <span class="comment"># [0 -1] = -|1⟩</span>
+
+<span class="comment"># Eigenvalues of X gate</span>
+X = np.array([[<span class="number">0</span>, <span class="number">1</span>], [<span class="number">1</span>, <span class="number">0</span>]], dtype=<span class="keyword">complex</span>)
+eigenvalues_X, eigenvectors_X = np.linalg.eig(X)
+<span class="function">print</span>(<span class="string">"X eigenvalues:"</span>, eigenvalues_X)
+<span class="comment"># Output: [ 1. -1.]</span>
+<span class="function">print</span>(<span class="string">"X eigenvectors:\n"</span>, eigenvectors_X)
+<span class="comment"># Output: [[0.707  0.707]   = |+⟩ and |-⟩
+#          [0.707 -0.707]]</span>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <a href="02_unitarity.html" class="nav-btn">← Previous: Unitarity</a>
+            <a href="../05_circuits/01_multi_qubit.html" class="nav-btn">Next: Multi-Qubit Circuits →</a>
+        </div>
+    </div>
+
+    <script>
+        function drawZAction(canvasId, state, eigenvalue) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 300, 250);
+
+            const cx = 150, cy = 125, r = 80;
+
+            // Draw Bloch sphere outline
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw equator
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, r, r * 0.3, 0, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw Z axis
+            ctx.strokeStyle = 'rgba(123,44,191,0.5)';
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - r - 20);
+            ctx.lineTo(cx, cy + r + 20);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw state vector
+            const color = state === 0 ? '#00d4ff' : '#7b2cbf';
+            const y = state === 0 ? cy - r : cy + r;
+            
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx, y);
+            ctx.stroke();
+
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(cx, y, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Labels
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Arial';
+            ctx.fillText('|0⟩', cx + 15, cy - r - 5);
+            ctx.fillText('|1⟩', cx + 15, cy + r + 15);
+
+            // Eigenvalue label
+            ctx.fillStyle = eigenvalue > 0 ? '#0f0' : '#ff6b6b';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText(`λ = ${eigenvalue > 0 ? '+1' : '-1'}`, cx - 25, 230);
+        }
+
+        function drawXEigen() {
+            const canvas = document.getElementById('xEigenCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 300, 200);
+
+            const cx = 150, cy = 100, r = 70;
+
+            // Draw circle
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw X axis (eigenvector axis for X gate)
+            ctx.strokeStyle = 'rgba(255,107,107,0.5)';
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(cx - r - 20, cy);
+            ctx.lineTo(cx + r + 20, cy);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw |+⟩ eigenvector
+            ctx.strokeStyle = '#ffd93d';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + r, cy);
+            ctx.stroke();
+            ctx.fillStyle = '#ffd93d';
+            ctx.beginPath();
+            ctx.arc(cx + r, cy, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillText('|+⟩', cx + r + 10, cy + 5);
+
+            // Draw |-⟩ eigenvector
+            ctx.strokeStyle = '#ff6b6b';
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx - r, cy);
+            ctx.stroke();
+            ctx.fillStyle = '#ff6b6b';
+            ctx.beginPath();
+            ctx.arc(cx - r, cy, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillText('|-⟩', cx - r - 25, cy + 5);
+
+            // Labels
+            ctx.fillStyle = '#fff';
+            ctx.font = '12px Arial';
+            ctx.fillText('X axis', cx + r - 10, cy + 25);
+        }
+
+        function drawHEigen() {
+            const canvas = document.getElementById('hEigenCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 300, 200);
+
+            const cx = 150, cy = 100, r = 70;
+
+            // Draw circle
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw H axis (45 degrees between X and Z)
+            ctx.strokeStyle = 'rgba(255,217,61,0.5)';
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(cx - r/Math.sqrt(2) - 15, cy + r/Math.sqrt(2) + 15);
+            ctx.lineTo(cx + r/Math.sqrt(2) + 15, cy - r/Math.sqrt(2) - 15);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw eigenvectors
+            const angle1 = -Math.PI/8;
+            const angle2 = Math.PI - Math.PI/8;
+
+            ctx.strokeStyle = '#0f0';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + r * Math.cos(angle1), cy + r * Math.sin(angle1));
+            ctx.stroke();
+            ctx.fillStyle = '#0f0';
+            ctx.beginPath();
+            ctx.arc(cx + r * Math.cos(angle1), cy + r * Math.sin(angle1), 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = '#f00';
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + r * Math.cos(angle2), cy + r * Math.sin(angle2));
+            ctx.stroke();
+            ctx.fillStyle = '#f00';
+            ctx.beginPath();
+            ctx.arc(cx + r * Math.cos(angle2), cy + r * Math.sin(angle2), 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#fff';
+            ctx.font = '12px Arial';
+            ctx.fillText('H axis', cx + 50, cy - 50);
+        }
+
+        function showEigen(gate) {
+            const canvas = document.getElementById('eigenCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 600, 300);
+
+            const cx = 300, cy = 150, r = 100;
+
+            // Draw unit circle (for eigenvalues)
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw axes
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.beginPath();
+            ctx.moveTo(cx - r - 30, cy);
+            ctx.lineTo(cx + r + 30, cy);
+            ctx.moveTo(cx, cy - r - 30);
+            ctx.lineTo(cx, cy + r + 30);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#fff';
+            ctx.font = '12px Arial';
+            ctx.fillText('Real', cx + r + 35, cy + 5);
+            ctx.fillText('Imag', cx + 5, cy - r - 35);
+            ctx.fillText('+1', cx + r + 5, cy + 15);
+            ctx.fillText('-1', cx - r - 20, cy + 15);
+
+            let eigenvalues, eigenvectors, info;
+
+            switch(gate) {
+                case 'Z':
+                    eigenvalues = [{r: 1, i: 0}, {r: -1, i: 0}];
+                    eigenvectors = ['|0⟩', '|1⟩'];
+                    info = 'Z gate: Eigenvalues +1 (|0⟩) and -1 (|1⟩)';
+                    break;
+                case 'X':
+                    eigenvalues = [{r: 1, i: 0}, {r: -1, i: 0}];
+                    eigenvectors = ['|+⟩', '|-⟩'];
+                    info = 'X gate: Eigenvalues +1 (|+⟩) and -1 (|-⟩)';
+                    break;
+                case 'Y':
+                    eigenvalues = [{r: 1, i: 0}, {r: -1, i: 0}];
+                    eigenvectors = ['|+i⟩', '|-i⟩'];
+                    info = 'Y gate: Eigenvalues +1 (|+i⟩) and -1 (|-i⟩)';
+                    break;
+                case 'H':
+                    eigenvalues = [{r: 1, i: 0}, {r: -1, i: 0}];
+                    eigenvectors = ['cos(π/8)|0⟩+sin(π/8)|1⟩', 'sin(π/8)|0⟩-cos(π/8)|1⟩'];
+                    info = 'H gate: Eigenvalues +1 and -1';
+                    break;
+            }
+
+            // Draw eigenvalues on complex plane
+            const colors = ['#00d4ff', '#ff6b6b'];
+            eigenvalues.forEach((ev, i) => {
+                const x = cx + ev.r * r;
+                const y = cy - ev.i * r;
+                
+                ctx.fillStyle = colors[i];
+                ctx.beginPath();
+                ctx.arc(x, y, 10, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Glow
+                const gradient = ctx.createRadialGradient(x, y, 0, x, y, 20);
+                gradient.addColorStop(0, colors[i]);
+                gradient.addColorStop(1, 'transparent');
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(x, y, 20, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Label
+                ctx.fillStyle = '#fff';
+                ctx.font = '14px Arial';
+                ctx.fillText(`λ=${ev.r > 0 ? '+1' : '-1'}`, x - 15, y + 30);
+                ctx.fillText(eigenvectors[i], x - 20, y + 50);
+            });
+
+            document.getElementById('eigenInfo').innerHTML = `<strong>${info}</strong>`;
+        }
+
+        // Initialize
+        drawZAction('z0Canvas', 0, 1);
+        drawZAction('z1Canvas', 1, -1);
+        drawXEigen();
+        drawHEigen();
+        showEigen('Z');
+    </script>
+</body>
+</html>

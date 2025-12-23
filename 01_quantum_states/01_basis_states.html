@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Basis States |0⟩ and |1⟩</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+        }
+        .section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .section h2 {
+            color: #00d4ff;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        .visualization-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-top: 20px;
+        }
+        .viz-card {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+        }
+        .viz-card h3 {
+            color: #7b2cbf;
+            margin-bottom: 15px;
+        }
+        canvas {
+            border-radius: 10px;
+            background: rgba(0,0,0,0.5);
+        }
+        .matrix-display {
+            font-family: 'Courier New', monospace;
+            font-size: 1.5em;
+            background: rgba(0,212,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+            margin: 10px;
+        }
+        .matrix-bracket {
+            font-size: 2em;
+            vertical-align: middle;
+        }
+        .explanation {
+            background: rgba(123,44,191,0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            line-height: 1.8;
+        }
+        .code-block {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        .code-block .keyword { color: #569cd6; }
+        .code-block .function { color: #dcdcaa; }
+        .code-block .string { color: #ce9178; }
+        .code-block .number { color: #b5cea8; }
+        .code-block .comment { color: #6a9955; }
+        .bloch-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .state-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            margin: 20px 0;
+        }
+        .state-box {
+            padding: 20px 40px;
+            border-radius: 15px;
+            font-size: 2em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .state-box.ket0 {
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            box-shadow: 0 0 30px rgba(0,212,255,0.5);
+        }
+        .state-box.ket1 {
+            background: linear-gradient(135deg, #7b2cbf, #5a1d8f);
+            box-shadow: 0 0 30px rgba(123,44,191,0.5);
+        }
+        .state-box:hover {
+            transform: scale(1.1);
+        }
+        .probability-bar {
+            width: 100%;
+            height: 40px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .prob-fill {
+            height: 100%;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .prob-0 { background: linear-gradient(90deg, #00d4ff, #0099cc); }
+        .prob-1 { background: linear-gradient(90deg, #7b2cbf, #5a1d8f); }
+        .interactive-section {
+            text-align: center;
+            padding: 20px;
+        }
+        button {
+            background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            color: white;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,212,255,0.4);
+        }
+        .vector-animation {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 20px auto;
+        }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        .nav-btn {
+            background: rgba(255,255,255,0.1);
+            padding: 15px 30px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #00d4ff;
+            transition: all 0.3s ease;
+        }
+        .nav-btn:hover {
+            background: rgba(0,212,255,0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Quantum Basis States: |0⟩ and |1⟩</h1>
+        <p class="subtitle">The Foundation of Quantum Computing - Computational Basis States</p>
+
+        <div class="section">
+            <h2>What are Basis States?</h2>
+            <p class="explanation">
+                In quantum computing, the <strong>computational basis states</strong> |0⟩ and |1⟩ are the quantum analogs of classical bits 0 and 1. 
+                Unlike classical bits which can only be 0 OR 1, quantum bits (qubits) can exist in a <strong>superposition</strong> of both states simultaneously.
+                These basis states form a complete orthonormal basis for a single qubit's 2-dimensional Hilbert space.
+            </p>
+            
+            <div class="state-indicator">
+                <div class="state-box ket0" onclick="showState(0)">|0⟩</div>
+                <div class="state-box ket1" onclick="showState(1)">|1⟩</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Vector Representation (Ket Notation)</h2>
+            <div class="visualization-grid">
+                <div class="viz-card">
+                    <h3>|0⟩ - The Zero State</h3>
+                    <div class="matrix-display">
+                        <span class="matrix-bracket">[</span>
+                        <span style="display: inline-block; text-align: center;">
+                            <span style="display: block; color: #00d4ff; font-size: 1.5em;">1</span>
+                            <span style="display: block; color: #666;">0</span>
+                        </span>
+                        <span class="matrix-bracket">]</span>
+                    </div>
+                    <p style="margin-top: 15px; color: #aaa;">
+                        Amplitude of |0⟩: <strong style="color: #00d4ff;">1</strong><br>
+                        Amplitude of |1⟩: <strong style="color: #666;">0</strong>
+                    </p>
+                    <div class="probability-bar">
+                        <div class="prob-fill prob-0" style="width: 100%;">100% probability of measuring 0</div>
+                    </div>
+                </div>
+                
+                <div class="viz-card">
+                    <h3>|1⟩ - The One State</h3>
+                    <div class="matrix-display">
+                        <span class="matrix-bracket">[</span>
+                        <span style="display: inline-block; text-align: center;">
+                            <span style="display: block; color: #666;">0</span>
+                            <span style="display: block; color: #7b2cbf; font-size: 1.5em;">1</span>
+                        </span>
+                        <span class="matrix-bracket">]</span>
+                    </div>
+                    <p style="margin-top: 15px; color: #aaa;">
+                        Amplitude of |0⟩: <strong style="color: #666;">0</strong><br>
+                        Amplitude of |1⟩: <strong style="color: #7b2cbf;">1</strong>
+                    </p>
+                    <div class="probability-bar">
+                        <div class="prob-fill prob-1" style="width: 100%;">100% probability of measuring 1</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Bloch Sphere Visualization</h2>
+            <p class="explanation">
+                The Bloch sphere is a geometric representation of a single qubit state. The |0⟩ state is at the <strong>North Pole</strong> 
+                and |1⟩ is at the <strong>South Pole</strong>. Any point on the sphere represents a valid qubit state.
+            </p>
+            <div class="bloch-container">
+                <canvas id="blochSphere" width="500" height="500"></canvas>
+                <div class="interactive-section">
+                    <button onclick="animateToState(0)">Show |0⟩</button>
+                    <button onclick="animateToState(1)">Show |1⟩</button>
+                    <button onclick="animateRotation()">Animate Rotation</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Bra Notation (Dual Vectors)</h2>
+            <div class="visualization-grid">
+                <div class="viz-card">
+                    <h3>⟨0| - Bra Zero</h3>
+                    <div class="matrix-display">
+                        <span class="matrix-bracket">[</span>
+                        <span style="color: #00d4ff;">1</span>&nbsp;&nbsp;
+                        <span style="color: #666;">0</span>
+                        <span class="matrix-bracket">]</span>
+                    </div>
+                    <p style="margin-top: 15px; color: #aaa;">
+                        The conjugate transpose of |0⟩<br>
+                        ⟨0| = |0⟩<sup>†</sup> = |0⟩<sup>*T</sup>
+                    </p>
+                </div>
+                
+                <div class="viz-card">
+                    <h3>⟨1| - Bra One</h3>
+                    <div class="matrix-display">
+                        <span class="matrix-bracket">[</span>
+                        <span style="color: #666;">0</span>&nbsp;&nbsp;
+                        <span style="color: #7b2cbf;">1</span>
+                        <span class="matrix-bracket">]</span>
+                    </div>
+                    <p style="margin-top: 15px; color: #aaa;">
+                        The conjugate transpose of |1⟩<br>
+                        ⟨1| = |1⟩<sup>†</sup> = |1⟩<sup>*T</sup>
+                    </p>
+                </div>
+            </div>
+            <div class="explanation">
+                <strong>Bra-Ket (Bracket) Notation:</strong> When we combine a bra and a ket, we get an inner product:
+                ⟨0|0⟩ = 1 (orthonormal), ⟨0|1⟩ = 0 (orthogonal), ⟨1|1⟩ = 1 (orthonormal)
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Python Implementation</h2>
+            <div class="code-block">
+<span class="keyword">import</span> numpy <span class="keyword">as</span> np
+
+<span class="comment"># Define |0⟩ and |1⟩ as column vectors</span>
+ket0 = np.array([[<span class="number">1</span>],
+                 [<span class="number">0</span>]], dtype=<span class="string">complex</span>)
+
+ket1 = np.array([[<span class="number">0</span>],
+                 [<span class="number">1</span>]], dtype=<span class="string">complex</span>)
+
+<span class="comment"># Define ⟨0| and ⟨1| as conjugate transposes</span>
+bra0 = ket0.conj().T  <span class="comment"># [1, 0]</span>
+bra1 = ket1.conj().T  <span class="comment"># [0, 1]</span>
+
+<span class="comment"># Verify orthonormality</span>
+<span class="function">print</span>(bra0 @ ket0)  <span class="comment"># Output: [[1.+0.j]] (⟨0|0⟩ = 1)</span>
+<span class="function">print</span>(bra0 @ ket1)  <span class="comment"># Output: [[0.+0.j]] (⟨0|1⟩ = 0)</span>
+<span class="function">print</span>(bra1 @ ket1)  <span class="comment"># Output: [[1.+0.j]] (⟨1|1⟩ = 1)</span>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Key Concepts</h2>
+            <div class="visualization-grid">
+                <div class="viz-card">
+                    <h3>Orthonormality</h3>
+                    <canvas id="orthogonalCanvas" width="300" height="300"></canvas>
+                    <p style="margin-top: 10px; color: #aaa;">
+                        |0⟩ and |1⟩ are perpendicular (orthogonal) and have unit length (normalized)
+                    </p>
+                </div>
+                <div class="viz-card">
+                    <h3>Measurement</h3>
+                    <canvas id="measurementCanvas" width="300" height="300"></canvas>
+                    <p style="margin-top: 10px; color: #aaa;">
+                        Measuring a basis state always gives a definite result
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <span></span>
+            <a href="02_superposition.html" class="nav-btn">Next: Superposition →</a>
+        </div>
+    </div>
+
+    <script>
+        // Bloch Sphere Visualization
+        const canvas = document.getElementById('blochSphere');
+        const ctx = canvas.getContext('2d');
+        let currentTheta = 0;
+        let currentPhi = 0;
+        let animating = false;
+
+        function drawBlochSphere(theta = 0, phi = 0) {
+            ctx.clearRect(0, 0, 500, 500);
+            const cx = 250, cy = 250, r = 180;
+
+            // Draw sphere outline
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw equator (ellipse)
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, r, r * 0.3, 0, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw vertical meridian
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, r * 0.3, r, 0, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw axes
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.setLineDash([5, 5]);
+            
+            // Z-axis
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - r - 30);
+            ctx.lineTo(cx, cy + r + 30);
+            ctx.stroke();
+
+            // X-axis
+            ctx.beginPath();
+            ctx.moveTo(cx - r - 30, cy);
+            ctx.lineTo(cx + r + 30, cy);
+            ctx.stroke();
+
+            ctx.setLineDash([]);
+
+            // Labels
+            ctx.fillStyle = '#00d4ff';
+            ctx.font = 'bold 20px Arial';
+            ctx.fillText('|0⟩', cx + 10, cy - r - 10);
+            
+            ctx.fillStyle = '#7b2cbf';
+            ctx.fillText('|1⟩', cx + 10, cy + r + 25);
+
+            ctx.fillStyle = '#fff';
+            ctx.font = '16px Arial';
+            ctx.fillText('|+⟩', cx + r + 10, cy + 5);
+            ctx.fillText('|-⟩', cx - r - 30, cy + 5);
+
+            // Draw state vector
+            const x = r * Math.sin(theta) * Math.cos(phi);
+            const y = r * Math.sin(theta) * Math.sin(phi);
+            const z = r * Math.cos(theta);
+
+            // Project to 2D (simple orthographic)
+            const px = cx + x;
+            const py = cy - z;
+
+            // Draw vector
+            ctx.strokeStyle = '#ff6b6b';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(px, py);
+            ctx.stroke();
+
+            // Draw point
+            ctx.fillStyle = '#ff6b6b';
+            ctx.beginPath();
+            ctx.arc(px, py, 10, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw glow
+            const gradient = ctx.createRadialGradient(px, py, 0, px, py, 20);
+            gradient.addColorStop(0, 'rgba(255,107,107,0.8)');
+            gradient.addColorStop(1, 'rgba(255,107,107,0)');
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(px, py, 20, 0, Math.PI * 2);
+            ctx.fill();
+
+            // State label
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Arial';
+            const stateLabel = theta === 0 ? '|0⟩' : theta === Math.PI ? '|1⟩' : '|ψ⟩';
+            ctx.fillText(stateLabel, px + 15, py - 15);
+        }
+
+        function animateToState(state) {
+            const targetTheta = state === 0 ? 0 : Math.PI;
+            animating = true;
+            
+            function animate() {
+                const diff = targetTheta - currentTheta;
+                if (Math.abs(diff) < 0.01) {
+                    currentTheta = targetTheta;
+                    drawBlochSphere(currentTheta, currentPhi);
+                    animating = false;
+                    return;
+                }
+                currentTheta += diff * 0.1;
+                drawBlochSphere(currentTheta, currentPhi);
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        function animateRotation() {
+            if (animating) return;
+            animating = true;
+            let angle = 0;
+            
+            function animate() {
+                angle += 0.05;
+                currentTheta = Math.PI / 2;
+                currentPhi = angle;
+                drawBlochSphere(currentTheta, currentPhi);
+                
+                if (angle < Math.PI * 2) {
+                    requestAnimationFrame(animate);
+                } else {
+                    animating = false;
+                    animateToState(0);
+                }
+            }
+            animate();
+        }
+
+        // Orthogonal vectors visualization
+        const orthCanvas = document.getElementById('orthogonalCanvas');
+        const orthCtx = orthCanvas.getContext('2d');
+
+        function drawOrthogonal() {
+            orthCtx.clearRect(0, 0, 300, 300);
+            const cx = 150, cy = 150;
+
+            // Draw axes
+            orthCtx.strokeStyle = 'rgba(255,255,255,0.3)';
+            orthCtx.beginPath();
+            orthCtx.moveTo(50, cy);
+            orthCtx.lineTo(250, cy);
+            orthCtx.moveTo(cx, 50);
+            orthCtx.lineTo(cx, 250);
+            orthCtx.stroke();
+
+            // Draw |0⟩ vector (pointing up)
+            orthCtx.strokeStyle = '#00d4ff';
+            orthCtx.lineWidth = 3;
+            orthCtx.beginPath();
+            orthCtx.moveTo(cx, cy);
+            orthCtx.lineTo(cx, cy - 80);
+            orthCtx.stroke();
+            
+            // Arrow head
+            orthCtx.beginPath();
+            orthCtx.moveTo(cx, cy - 90);
+            orthCtx.lineTo(cx - 8, cy - 75);
+            orthCtx.lineTo(cx + 8, cy - 75);
+            orthCtx.closePath();
+            orthCtx.fillStyle = '#00d4ff';
+            orthCtx.fill();
+
+            // Draw |1⟩ vector (pointing right)
+            orthCtx.strokeStyle = '#7b2cbf';
+            orthCtx.beginPath();
+            orthCtx.moveTo(cx, cy);
+            orthCtx.lineTo(cx + 80, cy);
+            orthCtx.stroke();
+            
+            // Arrow head
+            orthCtx.beginPath();
+            orthCtx.moveTo(cx + 90, cy);
+            orthCtx.lineTo(cx + 75, cy - 8);
+            orthCtx.lineTo(cx + 75, cy + 8);
+            orthCtx.closePath();
+            orthCtx.fillStyle = '#7b2cbf';
+            orthCtx.fill();
+
+            // Labels
+            orthCtx.fillStyle = '#00d4ff';
+            orthCtx.font = 'bold 16px Arial';
+            orthCtx.fillText('|0⟩', cx + 10, cy - 85);
+            
+            orthCtx.fillStyle = '#7b2cbf';
+            orthCtx.fillText('|1⟩', cx + 85, cy - 10);
+
+            // Right angle indicator
+            orthCtx.strokeStyle = 'rgba(255,255,255,0.5)';
+            orthCtx.lineWidth = 1;
+            orthCtx.beginPath();
+            orthCtx.moveTo(cx + 15, cy);
+            orthCtx.lineTo(cx + 15, cy - 15);
+            orthCtx.lineTo(cx, cy - 15);
+            orthCtx.stroke();
+        }
+
+        // Measurement visualization
+        const measCanvas = document.getElementById('measurementCanvas');
+        const measCtx = measCanvas.getContext('2d');
+        let measAnimating = false;
+
+        function drawMeasurement(result = null) {
+            measCtx.clearRect(0, 0, 300, 300);
+            
+            // Draw measurement device
+            measCtx.fillStyle = 'rgba(255,255,255,0.1)';
+            measCtx.fillRect(75, 100, 150, 100);
+            measCtx.strokeStyle = 'rgba(255,255,255,0.3)';
+            measCtx.strokeRect(75, 100, 150, 100);
+
+            // Display
+            measCtx.fillStyle = '#000';
+            measCtx.fillRect(100, 120, 100, 60);
+
+            if (result !== null) {
+                measCtx.fillStyle = result === 0 ? '#00d4ff' : '#7b2cbf';
+                measCtx.font = 'bold 40px Arial';
+                measCtx.fillText(result.toString(), 135, 165);
+            } else {
+                measCtx.fillStyle = '#333';
+                measCtx.font = '20px Arial';
+                measCtx.fillText('---', 130, 160);
+            }
+
+            // Labels
+            measCtx.fillStyle = '#fff';
+            measCtx.font = '14px Arial';
+            measCtx.fillText('Measurement Result', 95, 230);
+            measCtx.fillText('Click to measure!', 100, 260);
+        }
+
+        measCanvas.addEventListener('click', () => {
+            if (measAnimating) return;
+            measAnimating = true;
+            
+            let flashes = 0;
+            const result = Math.random() < 0.5 ? 0 : 1;
+            
+            function flash() {
+                if (flashes < 10) {
+                    drawMeasurement(flashes % 2);
+                    flashes++;
+                    setTimeout(flash, 100);
+                } else {
+                    drawMeasurement(result);
+                    measAnimating = false;
+                }
+            }
+            flash();
+        });
+
+        function showState(state) {
+            animateToState(state);
+        }
+
+        // Initialize
+        drawBlochSphere(0, 0);
+        drawOrthogonal();
+        drawMeasurement();
+    </script>
+</body>
+</html>

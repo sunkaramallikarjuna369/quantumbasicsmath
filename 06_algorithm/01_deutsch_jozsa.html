@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deutsch-Jozsa Algorithm - Complete Walkthrough</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle { text-align: center; color: #888; margin-bottom: 30px; font-size: 1.2em; }
+        .section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .section h2 { color: #00d4ff; margin-bottom: 20px; font-size: 1.8em; }
+        .visualization-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-top: 20px;
+        }
+        .viz-card {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+        }
+        .viz-card h3 { color: #7b2cbf; margin-bottom: 15px; }
+        canvas { border-radius: 10px; background: rgba(0,0,0,0.5); }
+        .equation {
+            font-family: 'Times New Roman', serif;
+            font-size: 1.5em;
+            text-align: center;
+            padding: 20px;
+            background: rgba(0,212,255,0.1);
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .explanation {
+            background: rgba(123,44,191,0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            line-height: 1.8;
+        }
+        .code-block {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        .code-block .keyword { color: #569cd6; }
+        .code-block .function { color: #dcdcaa; }
+        .code-block .comment { color: #6a9955; }
+        .code-block .number { color: #b5cea8; }
+        .code-block .string { color: #ce9178; }
+        button {
+            background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,212,255,0.4);
+        }
+        .nav-buttons { display: flex; justify-content: space-between; margin-top: 30px; }
+        .nav-btn {
+            background: rgba(255,255,255,0.1);
+            padding: 15px 30px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #00d4ff;
+            transition: all 0.3s ease;
+        }
+        .nav-btn:hover { background: rgba(0,212,255,0.2); }
+        .step-box {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 4px solid #00d4ff;
+        }
+        .step-number {
+            display: inline-block;
+            width: 35px;
+            height: 35px;
+            background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 35px;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+        .problem-box {
+            padding: 25px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+        .classical { background: rgba(255,107,107,0.2); border: 2px solid #ff6b6b; }
+        .quantum { background: rgba(0,255,0,0.2); border: 2px solid #0f0; }
+        .result-display {
+            font-size: 2em;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Deutsch-Jozsa Algorithm</h1>
+        <p class="subtitle">Exponential Quantum Speedup for Function Classification</p>
+
+        <div class="section">
+            <h2>The Problem</h2>
+            <p class="explanation">
+                Given a function f: {0,1}ⁿ → {0,1} that is promised to be either <strong>constant</strong> (same output for all inputs) 
+                or <strong>balanced</strong> (outputs 0 for exactly half the inputs and 1 for the other half), 
+                determine which type it is with certainty.
+            </p>
+            
+            <div class="visualization-grid">
+                <div class="problem-box classical">
+                    <h3 style="color: #ff6b6b;">Classical Approach</h3>
+                    <p style="margin-top: 15px;">
+                        Must check up to <strong>2ⁿ⁻¹ + 1</strong> inputs in the worst case.
+                        For n=10 qubits: up to 513 queries!
+                    </p>
+                    <p style="margin-top: 10px; color: #aaa;">
+                        Why? After checking half the inputs and getting the same answer,
+                        you still don't know if it's constant or balanced.
+                    </p>
+                </div>
+                
+                <div class="problem-box quantum">
+                    <h3 style="color: #0f0;">Quantum Approach</h3>
+                    <p style="margin-top: 15px;">
+                        Needs only <strong>1 query</strong> to the oracle!
+                        Exponential speedup: O(2ⁿ) → O(1)
+                    </p>
+                    <p style="margin-top: 10px; color: #aaa;">
+                        Uses superposition to query all inputs simultaneously
+                        and interference to extract the answer.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Algorithm Steps</h2>
+            
+            <div class="step-box">
+                <span class="step-number">1</span>
+                <strong>Initialize:</strong> Start with |0⟩⊗ⁿ|1⟩ (n input qubits in |0⟩, one ancilla in |1⟩)
+            </div>
+            
+            <div class="step-box">
+                <span class="step-number">2</span>
+                <strong>Apply Hadamard to all qubits:</strong> Creates superposition of all 2ⁿ inputs and puts ancilla in |-⟩
+            </div>
+            
+            <div class="step-box">
+                <span class="step-number">3</span>
+                <strong>Apply Oracle U<sub>f</sub>:</strong> Phase kickback adds (-1)^f(x) to each input state
+            </div>
+            
+            <div class="step-box">
+                <span class="step-number">4</span>
+                <strong>Apply Hadamard to input qubits:</strong> Interference amplifies or cancels amplitudes
+            </div>
+            
+            <div class="step-box">
+                <span class="step-number">5</span>
+                <strong>Measure input qubits:</strong> If all zeros → CONSTANT, otherwise → BALANCED
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Interactive Simulation</h2>
+            <div class="viz-card" style="max-width: 1000px; margin: 0 auto;">
+                <h3>Run the Algorithm</h3>
+                <div style="margin: 20px 0;">
+                    <strong>Select function type:</strong>
+                    <button onclick="runAlgorithm('constant0')">f(x) = 0 (Constant)</button>
+                    <button onclick="runAlgorithm('constant1')">f(x) = 1 (Constant)</button>
+                    <button onclick="runAlgorithm('balanced')">f(x) = x (Balanced)</button>
+                </div>
+                <canvas id="algorithmCanvas" width="900" height="400"></canvas>
+                <div id="resultDisplay" class="result-display" style="background: rgba(0,0,0,0.3);">
+                    Select a function to run the algorithm
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Step-by-Step Visualization</h2>
+            <div class="viz-card" style="max-width: 900px; margin: 0 auto;">
+                <h3>Watch Each Step</h3>
+                <div style="margin: 20px 0;">
+                    <button onclick="showStep(0)">Initial</button>
+                    <button onclick="showStep(1)">After H</button>
+                    <button onclick="showStep(2)">After Oracle</button>
+                    <button onclick="showStep(3)">After H</button>
+                    <button onclick="showStep(4)">Measure</button>
+                    <button onclick="animateAll()">Animate All</button>
+                </div>
+                <canvas id="stepCanvas" width="800" height="350"></canvas>
+                <div id="stepDescription" style="margin-top: 15px; font-size: 1.1em;"></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Why It Works: The Math</h2>
+            <div class="explanation">
+                <p><strong>After Step 2 (Hadamard on all):</strong></p>
+                <div class="equation" style="font-size: 1.2em;">
+                    |ψ₂⟩ = <sup>1</sup>/<sub>√2ⁿ</sub> Σₓ |x⟩ ⊗ |-⟩
+                </div>
+                
+                <p style="margin-top: 20px;"><strong>After Step 3 (Oracle with phase kickback):</strong></p>
+                <div class="equation" style="font-size: 1.2em;">
+                    |ψ₃⟩ = <sup>1</sup>/<sub>√2ⁿ</sub> Σₓ (-1)<sup>f(x)</sup> |x⟩ ⊗ |-⟩
+                </div>
+                
+                <p style="margin-top: 20px;"><strong>After Step 4 (Hadamard on inputs):</strong></p>
+                <div class="equation" style="font-size: 1.2em;">
+                    Amplitude of |0⟩⊗ⁿ = <sup>1</sup>/<sub>2ⁿ</sub> Σₓ (-1)<sup>f(x)</sup>
+                </div>
+                
+                <p style="margin-top: 20px;"><strong>Key insight:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>If f is <strong>constant</strong>: All terms have same sign → sum = ±1 → P(|0⟩⊗ⁿ) = 1</li>
+                    <li>If f is <strong>balanced</strong>: Half +1, half -1 → sum = 0 → P(|0⟩⊗ⁿ) = 0</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Python Implementation</h2>
+            <div class="code-block">
+<span class="keyword">import</span> numpy <span class="keyword">as</span> np
+
+<span class="keyword">def</span> <span class="function">deutsch_jozsa</span>(f, n):
+    <span class="string">"""
+    Deutsch-Jozsa algorithm for n-qubit input.
+    f: function that takes integer x (0 to 2^n-1) and returns 0 or 1
+    n: number of input qubits
+    Returns: "CONSTANT" or "BALANCED"
+    """</span>
+    
+    <span class="comment"># Step 1: Initialize |0...0⟩|1⟩</span>
+    N = <span class="number">2</span>**(n+<span class="number">1</span>)
+    state = np.zeros(N, dtype=<span class="keyword">complex</span>)
+    state[<span class="number">1</span>] = <span class="number">1</span>  <span class="comment"># |0...0⟩|1⟩</span>
+    
+    <span class="comment"># Step 2: Apply H to all qubits</span>
+    H = (<span class="number">1</span>/np.sqrt(<span class="number">2</span>)) * np.array([[<span class="number">1</span>, <span class="number">1</span>], [<span class="number">1</span>, -<span class="number">1</span>]])
+    H_all = H
+    <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="function">range</span>(n):
+        H_all = np.kron(H, H_all)
+    state = H_all @ state
+    
+    <span class="comment"># Step 3: Apply oracle Uf</span>
+    Uf = np.zeros((N, N), dtype=<span class="keyword">complex</span>)
+    <span class="keyword">for</span> x <span class="keyword">in</span> <span class="function">range</span>(<span class="number">2</span>**n):
+        <span class="keyword">for</span> y <span class="keyword">in</span> [<span class="number">0</span>, <span class="number">1</span>]:
+            input_idx = (x << <span class="number">1</span>) | y
+            output_idx = (x << <span class="number">1</span>) | (y ^ f(x))
+            Uf[output_idx, input_idx] = <span class="number">1</span>
+    state = Uf @ state
+    
+    <span class="comment"># Step 4: Apply H to input qubits only (H⊗n ⊗ I)</span>
+    H_n = H
+    <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="function">range</span>(n-<span class="number">1</span>):
+        H_n = np.kron(H, H_n)
+    H_input = np.kron(H_n, np.eye(<span class="number">2</span>))
+    state = H_input @ state
+    
+    <span class="comment"># Step 5: Measure - check probability of |0...0⟩ on input qubits</span>
+    prob_all_zeros = np.abs(state[<span class="number">0</span>])**<span class="number">2</span> + np.abs(state[<span class="number">1</span>])**<span class="number">2</span>
+    
+    <span class="keyword">if</span> prob_all_zeros > <span class="number">0.99</span>:
+        <span class="keyword">return</span> <span class="string">"CONSTANT"</span>
+    <span class="keyword">else</span>:
+        <span class="keyword">return</span> <span class="string">"BALANCED"</span>
+
+<span class="comment"># Test with different functions</span>
+f_constant = <span class="keyword">lambda</span> x: <span class="number">0</span>
+f_balanced = <span class="keyword">lambda</span> x: x & <span class="number">1</span>
+
+<span class="function">print</span>(deutsch_jozsa(f_constant, <span class="number">3</span>))  <span class="comment"># Output: CONSTANT</span>
+<span class="function">print</span>(deutsch_jozsa(f_balanced, <span class="number">3</span>))  <span class="comment"># Output: BALANCED</span>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <a href="../05_circuits/02_oracle_construction.html" class="nav-btn">← Previous: Oracle Construction</a>
+            <a href="../01_quantum_states/01_basis_states.html" class="nav-btn">Back to Start →</a>
+        </div>
+    </div>
+
+    <script>
+        let currentFunctionType = 'constant0';
+        let currentStep = 0;
+
+        function runAlgorithm(funcType) {
+            currentFunctionType = funcType;
+            const canvas = document.getElementById('algorithmCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 900, 400);
+
+            // Draw circuit
+            drawCircuit(ctx, funcType);
+
+            // Show result
+            const isConstant = funcType.startsWith('constant');
+            const resultDiv = document.getElementById('resultDisplay');
+            
+            if (isConstant) {
+                resultDiv.style.background = 'rgba(0,255,0,0.2)';
+                resultDiv.style.border = '2px solid #0f0';
+                resultDiv.innerHTML = `<span style="color: #0f0;">Result: CONSTANT</span><br>
+                    <span style="font-size: 0.6em; color: #aaa;">Measured |00...0⟩ with probability 1</span>`;
+            } else {
+                resultDiv.style.background = 'rgba(255,107,107,0.2)';
+                resultDiv.style.border = '2px solid #ff6b6b';
+                resultDiv.innerHTML = `<span style="color: #ff6b6b;">Result: BALANCED</span><br>
+                    <span style="font-size: 0.6em; color: #aaa;">Measured non-zero state with probability 1</span>`;
+            }
+        }
+
+        function drawCircuit(ctx, funcType) {
+            // Draw qubit lines
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.lineWidth = 2;
+            for (let i = 0; i < 3; i++) {
+                ctx.beginPath();
+                ctx.moveTo(50, 80 + i * 80);
+                ctx.lineTo(850, 80 + i * 80);
+                ctx.stroke();
+            }
+
+            // Initial states
+            ctx.fillStyle = '#fff';
+            ctx.font = '16px Arial';
+            ctx.fillText('|0⟩', 20, 85);
+            ctx.fillText('|0⟩', 20, 165);
+            ctx.fillText('|1⟩', 20, 245);
+
+            // Qubit labels
+            ctx.fillStyle = '#888';
+            ctx.font = '12px Arial';
+            ctx.fillText('input', 15, 55);
+            ctx.fillText('input', 15, 135);
+            ctx.fillText('ancilla', 10, 215);
+
+            // First H gates
+            ctx.fillStyle = '#ffd93d';
+            for (let i = 0; i < 3; i++) {
+                ctx.fillRect(100, 60 + i * 80, 40, 40);
+            }
+            ctx.fillStyle = '#000';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText('H', 112, 87);
+            ctx.fillText('H', 112, 167);
+            ctx.fillText('H', 112, 247);
+
+            // Oracle box
+            ctx.fillStyle = 'rgba(123,44,191,0.3)';
+            ctx.fillRect(250, 50, 150, 220);
+            ctx.strokeStyle = '#7b2cbf';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(250, 50, 150, 220);
+            ctx.fillStyle = '#7b2cbf';
+            ctx.font = '20px Arial';
+            ctx.fillText('U_f', 305, 165);
+
+            // Function label
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Arial';
+            let funcLabel = '';
+            switch(funcType) {
+                case 'constant0': funcLabel = 'f(x) = 0'; break;
+                case 'constant1': funcLabel = 'f(x) = 1'; break;
+                case 'balanced': funcLabel = 'f(x) = x'; break;
+            }
+            ctx.fillText(funcLabel, 290, 290);
+
+            // Second H gates (input qubits only)
+            ctx.fillStyle = '#ffd93d';
+            ctx.fillRect(500, 60, 40, 40);
+            ctx.fillRect(500, 140, 40, 40);
+            ctx.fillStyle = '#000';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText('H', 512, 87);
+            ctx.fillText('H', 512, 167);
+
+            // Measurement
+            ctx.strokeStyle = '#00d4ff';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(650, 60, 50, 40);
+            ctx.strokeRect(650, 140, 50, 40);
+            
+            // Meter symbols
+            ctx.beginPath();
+            ctx.arc(675, 75, 12, Math.PI, 0);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(675, 75);
+            ctx.lineTo(682, 65);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(675, 155, 12, Math.PI, 0);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(675, 155);
+            ctx.lineTo(682, 145);
+            ctx.stroke();
+
+            // Result
+            const isConstant = funcType.startsWith('constant');
+            ctx.fillStyle = isConstant ? '#0f0' : '#ff6b6b';
+            ctx.font = 'bold 18px Arial';
+            ctx.fillText(isConstant ? '|00⟩' : '|≠00⟩', 750, 125);
+
+            // Stage labels
+            ctx.fillStyle = '#888';
+            ctx.font = '12px Arial';
+            ctx.fillText('Step 1', 50, 320);
+            ctx.fillText('Step 2', 100, 320);
+            ctx.fillText('Step 3', 300, 320);
+            ctx.fillText('Step 4', 500, 320);
+            ctx.fillText('Step 5', 660, 320);
+        }
+
+        function showStep(step) {
+            currentStep = step;
+            const canvas = document.getElementById('stepCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 800, 350);
+
+            const descriptions = [
+                'Initial state: |00⟩|1⟩ - Two input qubits in |0⟩, ancilla in |1⟩',
+                'After Hadamard: Superposition of all inputs, ancilla in |-⟩',
+                'After Oracle: Phase (-1)^f(x) applied to each input state',
+                'After Hadamard on inputs: Interference creates final state',
+                'Measurement: All zeros → CONSTANT, otherwise → BALANCED'
+            ];
+
+            // Draw state visualization
+            const states = ['|00⟩', '|01⟩', '|10⟩', '|11⟩'];
+            const colors = ['#00d4ff', '#7b2cbf', '#ff6b6b', '#ffd93d'];
+            
+            let amplitudes;
+            const sqrt2 = 1/Math.sqrt(2);
+            const half = 0.5;
+
+            switch(step) {
+                case 0: // Initial
+                    amplitudes = [1, 0, 0, 0];
+                    break;
+                case 1: // After H
+                    amplitudes = [half, half, half, half];
+                    break;
+                case 2: // After Oracle (balanced f(x)=x)
+                    amplitudes = [half, half, -half, -half]; // Phase on |10⟩, |11⟩
+                    break;
+                case 3: // After H on inputs
+                    amplitudes = [0, 0, 1, 0]; // For balanced, measure |10⟩
+                    break;
+                case 4: // Measurement
+                    amplitudes = [0, 0, 1, 0];
+                    break;
+            }
+
+            // Draw amplitude bars
+            const barWidth = 100;
+            const maxHeight = 200;
+            const startY = 280;
+
+            for (let i = 0; i < 4; i++) {
+                const x = 100 + i * 150;
+                const height = Math.abs(amplitudes[i]) * maxHeight;
+                
+                // Draw bar
+                const gradient = ctx.createLinearGradient(0, startY - height, 0, startY);
+                gradient.addColorStop(0, colors[i]);
+                gradient.addColorStop(1, colors[i].replace(')', ', 0.5)').replace('rgb', 'rgba'));
+                ctx.fillStyle = gradient;
+                ctx.fillRect(x, startY - height, barWidth, height);
+
+                // Sign indicator
+                if (amplitudes[i] < 0) {
+                    ctx.fillStyle = '#ff6b6b';
+                    ctx.font = 'bold 20px Arial';
+                    ctx.fillText('-', x + 45, startY - height - 10);
+                } else if (amplitudes[i] > 0) {
+                    ctx.fillStyle = '#0f0';
+                    ctx.font = 'bold 20px Arial';
+                    ctx.fillText('+', x + 45, startY - height - 10);
+                }
+
+                // Label
+                ctx.fillStyle = '#fff';
+                ctx.font = '14px Arial';
+                ctx.fillText(states[i], x + 35, 310);
+
+                // Amplitude value
+                ctx.font = '12px Arial';
+                if (Math.abs(amplitudes[i]) > 0.01) {
+                    ctx.fillText(amplitudes[i].toFixed(2), x + 35, startY - height - 25);
+                }
+            }
+
+            // Step indicator
+            ctx.fillStyle = '#00d4ff';
+            ctx.font = 'bold 20px Arial';
+            ctx.fillText(`Step ${step + 1}`, 350, 40);
+
+            document.getElementById('stepDescription').innerHTML = descriptions[step];
+        }
+
+        let animating = false;
+        function animateAll() {
+            if (animating) return;
+            animating = true;
+            
+            let step = 0;
+            function nextStep() {
+                showStep(step);
+                step++;
+                if (step < 5) {
+                    setTimeout(nextStep, 1500);
+                } else {
+                    animating = false;
+                }
+            }
+            nextStep();
+        }
+
+        // Initialize
+        runAlgorithm('constant0');
+        showStep(0);
+    </script>
+</body>
+</html>

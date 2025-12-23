@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Normalization & Probability - Quantum Evaluation</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle { text-align: center; color: #888; margin-bottom: 30px; font-size: 1.2em; }
+        .section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .section h2 { color: #00d4ff; margin-bottom: 20px; font-size: 1.8em; }
+        .visualization-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-top: 20px;
+        }
+        .viz-card {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+        }
+        .viz-card h3 { color: #7b2cbf; margin-bottom: 15px; }
+        canvas { border-radius: 10px; background: rgba(0,0,0,0.5); }
+        .equation {
+            font-family: 'Times New Roman', serif;
+            font-size: 1.5em;
+            text-align: center;
+            padding: 20px;
+            background: rgba(0,212,255,0.1);
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .explanation {
+            background: rgba(123,44,191,0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            line-height: 1.8;
+        }
+        .code-block {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        .code-block .keyword { color: #569cd6; }
+        .code-block .function { color: #dcdcaa; }
+        .code-block .comment { color: #6a9955; }
+        .code-block .number { color: #b5cea8; }
+        button {
+            background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,212,255,0.4);
+        }
+        .nav-buttons { display: flex; justify-content: space-between; margin-top: 30px; }
+        .nav-btn {
+            background: rgba(255,255,255,0.1);
+            padding: 15px 30px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #00d4ff;
+            transition: all 0.3s ease;
+        }
+        .nav-btn:hover { background: rgba(0,212,255,0.2); }
+        .slider-container {
+            margin: 20px 0;
+        }
+        .slider-container input[type="range"] {
+            width: 100%;
+            height: 10px;
+            -webkit-appearance: none;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            border-radius: 5px;
+        }
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 25px;
+            height: 25px;
+            background: #fff;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .norm-display {
+            font-size: 2em;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .norm-valid { background: rgba(0,255,0,0.2); border: 2px solid #0f0; }
+        .norm-invalid { background: rgba(255,0,0,0.2); border: 2px solid #f00; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Normalization & Probability</h1>
+        <p class="subtitle">Ensuring Valid Quantum States</p>
+
+        <div class="section">
+            <h2>The Normalization Condition</h2>
+            <p class="explanation">
+                A valid quantum state must be <strong>normalized</strong> - the sum of squared magnitudes of all amplitudes must equal 1.
+                This ensures that the total probability of all possible measurement outcomes is 100%.
+                For a state |ψ⟩ = α|0⟩ + β|1⟩, we require |α|² + |β|² = 1.
+            </p>
+            
+            <div class="equation">
+                ⟨ψ|ψ⟩ = Σᵢ |αᵢ|² = 1 &nbsp;&nbsp; (Normalization Condition)
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Interactive Normalization Checker</h2>
+            <div class="visualization-grid">
+                <div class="viz-card">
+                    <h3>Adjust Amplitudes</h3>
+                    <div class="slider-container">
+                        <label>α (amplitude of |0⟩): <span id="alphaValue">0.707</span></label>
+                        <input type="range" id="alphaSlider" min="0" max="1.5" step="0.01" value="0.707" oninput="updateNorm()">
+                    </div>
+                    <div class="slider-container">
+                        <label>β (amplitude of |1⟩): <span id="betaValue">0.707</span></label>
+                        <input type="range" id="betaSlider" min="0" max="1.5" step="0.01" value="0.707" oninput="updateNorm()">
+                    </div>
+                    <div id="normDisplay" class="norm-display norm-valid">
+                        ||ψ|| = 1.000
+                    </div>
+                    <canvas id="normCanvas" width="350" height="250"></canvas>
+                </div>
+                
+                <div class="viz-card">
+                    <h3>Probability Distribution</h3>
+                    <canvas id="probCanvas" width="350" height="300"></canvas>
+                    <div id="probText" style="margin-top: 15px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Born Rule: Probability from Amplitude</h2>
+            <p class="explanation">
+                The <strong>Born rule</strong> states that the probability of measuring a particular outcome is the squared magnitude 
+                of the corresponding amplitude. This is why we need complex numbers - the phase affects interference but not individual probabilities.
+            </p>
+            
+            <div class="equation">
+                P(outcome i) = |⟨i|ψ⟩|² = |αᵢ|²
+            </div>
+
+            <div class="visualization-grid">
+                <div class="viz-card">
+                    <h3>Amplitude vs Probability</h3>
+                    <canvas id="bornCanvas" width="400" height="300"></canvas>
+                </div>
+                
+                <div class="viz-card">
+                    <h3>Complex Amplitude Example</h3>
+                    <canvas id="complexProbCanvas" width="400" height="300"></canvas>
+                    <p style="color: #aaa; margin-top: 10px;">
+                        |ψ⟩ = (1+i)/2 |0⟩ + (1-i)/2 |1⟩<br>
+                        Both have |amplitude|² = 0.5
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Normalizing a State</h2>
+            <div class="visualization-grid">
+                <div class="viz-card">
+                    <h3>Before Normalization</h3>
+                    <canvas id="beforeNormCanvas" width="300" height="200"></canvas>
+                    <div style="margin-top: 10px;">
+                        |ψ⟩ = |0⟩ + |1⟩<br>
+                        ||ψ|| = √2 ≠ 1
+                    </div>
+                </div>
+                
+                <div class="viz-card">
+                    <h3>After Normalization</h3>
+                    <canvas id="afterNormCanvas" width="300" height="200"></canvas>
+                    <div style="margin-top: 10px;">
+                        |ψ⟩ = (|0⟩ + |1⟩)/√2<br>
+                        ||ψ|| = 1
+                    </div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button onclick="animateNormalization()">Animate Normalization</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Python Implementation</h2>
+            <div class="code-block">
+<span class="keyword">import</span> numpy <span class="keyword">as</span> np
+
+<span class="comment"># Define an unnormalized state</span>
+psi_unnorm = np.array([[<span class="number">1</span>], [<span class="number">1</span>]], dtype=<span class="keyword">complex</span>)
+
+<span class="comment"># Calculate the norm</span>
+norm = np.linalg.norm(psi_unnorm)
+<span class="function">print</span>(<span class="string">"Norm before:"</span>, norm)  <span class="comment"># Output: 1.414... (√2)</span>
+
+<span class="comment"># Normalize the state</span>
+psi = psi_unnorm / norm
+<span class="function">print</span>(<span class="string">"Normalized state:"</span>, psi.flatten())
+<span class="comment"># Output: [0.707 0.707]</span>
+
+<span class="comment"># Verify normalization</span>
+norm_after = np.linalg.norm(psi)
+<span class="function">print</span>(<span class="string">"Norm after:"</span>, norm_after)  <span class="comment"># Output: 1.0</span>
+
+<span class="comment"># Calculate probabilities using Born rule</span>
+prob_0 = np.abs(psi[<span class="number">0</span>])**<span class="number">2</span>
+prob_1 = np.abs(psi[<span class="number">1</span>])**<span class="number">2</span>
+<span class="function">print</span>(f<span class="string">"P(0) = {prob_0[0]:.4f}"</span>)  <span class="comment"># Output: 0.5</span>
+<span class="function">print</span>(f<span class="string">"P(1) = {prob_1[0]:.4f}"</span>)  <span class="comment"># Output: 0.5</span>
+<span class="function">print</span>(f<span class="string">"Total = {prob_0[0] + prob_1[0]:.4f}"</span>)  <span class="comment"># Output: 1.0</span>
+
+<span class="comment"># Complex amplitude example</span>
+psi_complex = np.array([[(1+1j)/2], [(1-1j)/2]], dtype=<span class="keyword">complex</span>)
+<span class="function">print</span>(<span class="string">"Complex state:"</span>, psi_complex.flatten())
+<span class="function">print</span>(<span class="string">"P(0) ="</span>, np.abs(psi_complex[<span class="number">0</span>])**<span class="number">2</span>)  <span class="comment"># 0.5</span>
+<span class="function">print</span>(<span class="string">"P(1) ="</span>, np.abs(psi_complex[<span class="number">1</span>])**<span class="number">2</span>)  <span class="comment"># 0.5</span>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <a href="../03_quantum_gates/02_hadamard_gate.html" class="nav-btn">← Previous: Hadamard Gate</a>
+            <a href="02_unitarity.html" class="nav-btn">Next: Unitarity →</a>
+        </div>
+    </div>
+
+    <script>
+        let alpha = 0.707;
+        let beta = 0.707;
+
+        function updateNorm() {
+            alpha = parseFloat(document.getElementById('alphaSlider').value);
+            beta = parseFloat(document.getElementById('betaSlider').value);
+            document.getElementById('alphaValue').textContent = alpha.toFixed(3);
+            document.getElementById('betaValue').textContent = beta.toFixed(3);
+            
+            const norm = Math.sqrt(alpha*alpha + beta*beta);
+            const normDisplay = document.getElementById('normDisplay');
+            normDisplay.textContent = `||ψ|| = ${norm.toFixed(3)}`;
+            
+            if (Math.abs(norm - 1) < 0.01) {
+                normDisplay.className = 'norm-display norm-valid';
+            } else {
+                normDisplay.className = 'norm-display norm-invalid';
+            }
+            
+            drawNormCircle();
+            drawProbBars();
+        }
+
+        function drawNormCircle() {
+            const canvas = document.getElementById('normCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 350, 250);
+
+            const cx = 175, cy = 125, r = 100;
+
+            // Draw unit circle
+            ctx.strokeStyle = 'rgba(0,255,0,0.5)';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw axes
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(cx - r - 20, cy);
+            ctx.lineTo(cx + r + 20, cy);
+            ctx.moveTo(cx, cy - r - 20);
+            ctx.lineTo(cx, cy + r + 20);
+            ctx.stroke();
+
+            // Draw state vector
+            const scale = r;
+            const px = cx + alpha * scale;
+            const py = cy - beta * scale;
+
+            ctx.strokeStyle = '#ff6b6b';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(px, py);
+            ctx.stroke();
+
+            ctx.fillStyle = '#ff6b6b';
+            ctx.beginPath();
+            ctx.arc(px, py, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw projections
+            ctx.strokeStyle = 'rgba(0,212,255,0.5)';
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(px, py);
+            ctx.lineTo(px, cy);
+            ctx.stroke();
+            ctx.strokeStyle = 'rgba(123,44,191,0.5)';
+            ctx.beginPath();
+            ctx.moveTo(px, py);
+            ctx.lineTo(cx, py);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Labels
+            ctx.fillStyle = '#fff';
+            ctx.font = '12px Arial';
+            ctx.fillText('|α|', px + 5, cy + 15);
+            ctx.fillText('|β|', cx - 20, py - 5);
+            ctx.fillStyle = '#0f0';
+            ctx.fillText('Unit circle', cx + r - 30, cy - r - 5);
+        }
+
+        function drawProbBars() {
+            const canvas = document.getElementById('probCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 350, 300);
+
+            const norm = Math.sqrt(alpha*alpha + beta*beta);
+            const prob0 = (alpha*alpha) / (norm*norm);
+            const prob1 = (beta*beta) / (norm*norm);
+
+            const barWidth = 80;
+            const maxHeight = 200;
+            const startY = 260;
+
+            // |0⟩ bar
+            const height0 = prob0 * maxHeight;
+            const gradient0 = ctx.createLinearGradient(0, startY - height0, 0, startY);
+            gradient0.addColorStop(0, '#00d4ff');
+            gradient0.addColorStop(1, '#0099cc');
+            ctx.fillStyle = gradient0;
+            ctx.fillRect(70, startY - height0, barWidth, height0);
+
+            // |1⟩ bar
+            const height1 = prob1 * maxHeight;
+            const gradient1 = ctx.createLinearGradient(0, startY - height1, 0, startY);
+            gradient1.addColorStop(0, '#7b2cbf');
+            gradient1.addColorStop(1, '#5a1d8f');
+            ctx.fillStyle = gradient1;
+            ctx.fillRect(200, startY - height1, barWidth, height1);
+
+            // Labels
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Arial';
+            ctx.fillText('|0⟩', 100, 280);
+            ctx.fillText('|1⟩', 230, 280);
+
+            // Percentage labels
+            ctx.font = '16px Arial';
+            ctx.fillStyle = '#00d4ff';
+            ctx.fillText(`${(prob0 * 100).toFixed(1)}%`, 85, startY - height0 - 10);
+            ctx.fillStyle = '#7b2cbf';
+            ctx.fillText(`${(prob1 * 100).toFixed(1)}%`, 215, startY - height1 - 10);
+
+            // Total
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Arial';
+            ctx.fillText(`Total: ${((prob0 + prob1) * 100).toFixed(1)}%`, 130, 30);
+
+            document.getElementById('probText').innerHTML = 
+                `P(0) = |α|²/||ψ||² = ${prob0.toFixed(4)}<br>` +
+                `P(1) = |β|²/||ψ||² = ${prob1.toFixed(4)}`;
+        }
+
+        function drawBornRule() {
+            const canvas = document.getElementById('bornCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 400, 300);
+
+            // Draw amplitude to probability curve
+            ctx.strokeStyle = '#00d4ff';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (let a = 0; a <= 1; a += 0.01) {
+                const x = 50 + a * 300;
+                const y = 250 - (a * a) * 200;
+                if (a === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            // Draw axes
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(50, 250);
+            ctx.lineTo(370, 250);
+            ctx.moveTo(50, 250);
+            ctx.lineTo(50, 30);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Arial';
+            ctx.fillText('Amplitude |α|', 180, 280);
+            ctx.fillText('Probability', 10, 20);
+            ctx.fillText('0', 45, 270);
+            ctx.fillText('1', 345, 270);
+            ctx.fillText('0', 30, 255);
+            ctx.fillText('1', 30, 55);
+
+            // Highlight point
+            const a = 0.707;
+            const px = 50 + a * 300;
+            const py = 250 - (a * a) * 200;
+            ctx.fillStyle = '#ff6b6b';
+            ctx.beginPath();
+            ctx.arc(px, py, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#ff6b6b';
+            ctx.font = '12px Arial';
+            ctx.fillText('|α|=0.707 → P=0.5', px - 40, py - 15);
+
+            // Formula
+            ctx.fillStyle = '#ffd93d';
+            ctx.font = '16px Arial';
+            ctx.fillText('P = |α|²', 300, 100);
+        }
+
+        function drawComplexProb() {
+            const canvas = document.getElementById('complexProbCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 400, 300);
+
+            // Draw complex plane
+            const cx = 200, cy = 150, r = 100;
+
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(cx - r - 20, cy);
+            ctx.lineTo(cx + r + 20, cy);
+            ctx.moveTo(cx, cy - r - 20);
+            ctx.lineTo(cx, cy + r + 20);
+            ctx.stroke();
+
+            // Draw unit circle
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            ctx.beginPath();
+            ctx.arc(cx, cy, r/2, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw (1+i)/2
+            const scale = r;
+            const x1 = 0.5, y1 = 0.5;
+            ctx.fillStyle = '#00d4ff';
+            ctx.beginPath();
+            ctx.arc(cx + x1 * scale, cy - y1 * scale, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillText('(1+i)/2', cx + x1 * scale + 10, cy - y1 * scale);
+
+            // Draw (1-i)/2
+            const x2 = 0.5, y2 = -0.5;
+            ctx.fillStyle = '#7b2cbf';
+            ctx.beginPath();
+            ctx.arc(cx + x2 * scale, cy - y2 * scale, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillText('(1-i)/2', cx + x2 * scale + 10, cy - y2 * scale + 15);
+
+            // Show magnitudes are equal
+            ctx.strokeStyle = '#ff6b6b';
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + x1 * scale, cy - y1 * scale);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + x2 * scale, cy - y2 * scale);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Labels
+            ctx.fillStyle = '#fff';
+            ctx.font = '12px Arial';
+            ctx.fillText('Real', cx + r + 5, cy + 5);
+            ctx.fillText('Imag', cx + 5, cy - r - 5);
+            ctx.fillStyle = '#ff6b6b';
+            ctx.fillText('Same |amplitude| = 1/√2', 120, 280);
+        }
+
+        function drawBeforeNorm() {
+            const canvas = document.getElementById('beforeNormCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 300, 200);
+
+            const barWidth = 60;
+            const maxHeight = 150;
+            const startY = 180;
+
+            // Both bars at height 1
+            ctx.fillStyle = 'rgba(255,107,107,0.7)';
+            ctx.fillRect(60, startY - maxHeight, barWidth, maxHeight);
+            ctx.fillRect(180, startY - maxHeight, barWidth, maxHeight);
+
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Arial';
+            ctx.fillText('|0⟩', 80, 195);
+            ctx.fillText('|1⟩', 200, 195);
+            ctx.fillText('1', 85, startY - maxHeight - 5);
+            ctx.fillText('1', 205, startY - maxHeight - 5);
+        }
+
+        function drawAfterNorm() {
+            const canvas = document.getElementById('afterNormCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 300, 200);
+
+            const barWidth = 60;
+            const maxHeight = 150;
+            const startY = 180;
+            const normHeight = maxHeight / Math.sqrt(2);
+
+            // Both bars at height 1/√2
+            ctx.fillStyle = 'rgba(0,255,0,0.7)';
+            ctx.fillRect(60, startY - normHeight, barWidth, normHeight);
+            ctx.fillRect(180, startY - normHeight, barWidth, normHeight);
+
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Arial';
+            ctx.fillText('|0⟩', 80, 195);
+            ctx.fillText('|1⟩', 200, 195);
+            ctx.fillText('1/√2', 70, startY - normHeight - 5);
+            ctx.fillText('1/√2', 190, startY - normHeight - 5);
+        }
+
+        let normAnimating = false;
+        function animateNormalization() {
+            if (normAnimating) return;
+            normAnimating = true;
+
+            const beforeCanvas = document.getElementById('beforeNormCanvas');
+            const beforeCtx = beforeCanvas.getContext('2d');
+            
+            let progress = 0;
+            const startHeight = 150;
+            const endHeight = 150 / Math.sqrt(2);
+
+            function animate() {
+                beforeCtx.clearRect(0, 0, 300, 200);
+
+                const currentHeight = startHeight - progress * (startHeight - endHeight);
+                const barWidth = 60;
+                const startY = 180;
+
+                // Interpolate color
+                const r = Math.round(255 - progress * 255);
+                const g = Math.round(107 + progress * (255 - 107));
+                const b = Math.round(107 - progress * 107);
+                beforeCtx.fillStyle = `rgba(${r},${g},${b},0.7)`;
+                
+                beforeCtx.fillRect(60, startY - currentHeight, barWidth, currentHeight);
+                beforeCtx.fillRect(180, startY - currentHeight, barWidth, currentHeight);
+
+                beforeCtx.fillStyle = '#fff';
+                beforeCtx.font = '14px Arial';
+                beforeCtx.fillText('|0⟩', 80, 195);
+                beforeCtx.fillText('|1⟩', 200, 195);
+
+                const currentVal = 1 - progress * (1 - 1/Math.sqrt(2));
+                beforeCtx.fillText(currentVal.toFixed(3), 70, startY - currentHeight - 5);
+                beforeCtx.fillText(currentVal.toFixed(3), 190, startY - currentHeight - 5);
+
+                progress += 0.02;
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    normAnimating = false;
+                    drawBeforeNorm();
+                }
+            }
+            animate();
+        }
+
+        // Initialize
+        updateNorm();
+        drawBornRule();
+        drawComplexProb();
+        drawBeforeNorm();
+        drawAfterNorm();
+    </script>
+</body>
+</html>

@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Superposition</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+        }
+        .section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .section h2 {
+            color: #00d4ff;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        .visualization-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-top: 20px;
+        }
+        .viz-card {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+        }
+        .viz-card h3 {
+            color: #7b2cbf;
+            margin-bottom: 15px;
+        }
+        canvas {
+            border-radius: 10px;
+            background: rgba(0,0,0,0.5);
+        }
+        .equation {
+            font-family: 'Times New Roman', serif;
+            font-size: 1.8em;
+            text-align: center;
+            padding: 20px;
+            background: rgba(0,212,255,0.1);
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .explanation {
+            background: rgba(123,44,191,0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            line-height: 1.8;
+        }
+        .code-block {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        .code-block .keyword { color: #569cd6; }
+        .code-block .function { color: #dcdcaa; }
+        .code-block .string { color: #ce9178; }
+        .code-block .number { color: #b5cea8; }
+        .code-block .comment { color: #6a9955; }
+        .probability-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 30px 0;
+        }
+        .prob-box {
+            text-align: center;
+            padding: 20px;
+            border-radius: 15px;
+            min-width: 150px;
+        }
+        .prob-box.zero {
+            background: linear-gradient(135deg, rgba(0,212,255,0.3), rgba(0,212,255,0.1));
+            border: 2px solid #00d4ff;
+        }
+        .prob-box.one {
+            background: linear-gradient(135deg, rgba(123,44,191,0.3), rgba(123,44,191,0.1));
+            border: 2px solid #7b2cbf;
+        }
+        .prob-value {
+            font-size: 2.5em;
+            font-weight: bold;
+        }
+        .slider-container {
+            margin: 30px 0;
+            text-align: center;
+        }
+        .slider-container input[type="range"] {
+            width: 80%;
+            height: 10px;
+            -webkit-appearance: none;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            border-radius: 5px;
+            outline: none;
+        }
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 25px;
+            height: 25px;
+            background: #fff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        button {
+            background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            color: white;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,212,255,0.4);
+        }
+        .wave-container {
+            position: relative;
+            height: 200px;
+            margin: 20px 0;
+        }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        .nav-btn {
+            background: rgba(255,255,255,0.1);
+            padding: 15px 30px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #00d4ff;
+            transition: all 0.3s ease;
+        }
+        .nav-btn:hover {
+            background: rgba(0,212,255,0.2);
+        }
+        .measurement-results {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        .result-chip {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        .result-chip.zero {
+            background: #00d4ff;
+            color: #000;
+        }
+        .result-chip.one {
+            background: #7b2cbf;
+            color: #fff;
+        }
+        .matrix-display {
+            font-family: 'Courier New', monospace;
+            font-size: 1.3em;
+            background: rgba(0,212,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Quantum Superposition</h1>
+        <p class="subtitle">The Heart of Quantum Computing - Being in Multiple States Simultaneously</p>
+
+        <div class="section">
+            <h2>What is Superposition?</h2>
+            <p class="explanation">
+                <strong>Superposition</strong> is the fundamental principle that allows a qubit to exist in a combination of |0⟩ and |1⟩ states 
+                simultaneously. Unlike a classical bit that must be either 0 or 1, a qubit in superposition is described by complex amplitudes 
+                α and β, where the state is |ψ⟩ = α|0⟩ + β|1⟩. The probabilities of measuring 0 or 1 are |α|² and |β|² respectively, 
+                and they must sum to 1 (normalization condition).
+            </p>
+            
+            <div class="equation">
+                |ψ⟩ = α|0⟩ + β|1⟩ &nbsp;&nbsp; where &nbsp;&nbsp; |α|² + |β|² = 1
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>The Equal Superposition State |+⟩</h2>
+            <div class="visualization-grid">
+                <div class="viz-card">
+                    <h3>Mathematical Representation</h3>
+                    <div class="equation" style="font-size: 1.5em;">
+                        |+⟩ = <sup>1</sup>/<sub>√2</sub> (|0⟩ + |1⟩)
+                    </div>
+                    <div class="matrix-display">
+                        <span style="font-size: 1.2em;">=</span>
+                        <span style="font-size: 1.2em;"><sup>1</sup>/<sub>√2</sub></span>
+                        <span style="font-size: 1.5em;">[</span>
+                        <span style="display: inline-block; text-align: center;">
+                            <span style="display: block; color: #00d4ff;">1</span>
+                            <span style="display: block; color: #7b2cbf;">1</span>
+                        </span>
+                        <span style="font-size: 1.5em;">]</span>
+                        <span style="font-size: 1.2em;">≈</span>
+                        <span style="font-size: 1.5em;">[</span>
+                        <span style="display: inline-block; text-align: center;">
+                            <span style="display: block;">0.707</span>
+                            <span style="display: block;">0.707</span>
+                        </span>
+                        <span style="font-size: 1.5em;">]</span>
+                    </div>
+                    <p style="margin-top: 15px; color: #aaa;">
+                        Both amplitudes are equal: 1/√2 ≈ 0.707
+                    </p>
+                </div>
+                
+                <div class="viz-card">
+                    <h3>Probability Distribution</h3>
+                    <div class="probability-container">
+                        <div class="prob-box zero">
+                            <div style="font-size: 1.2em;">|0⟩</div>
+                            <div class="prob-value" style="color: #00d4ff;">50%</div>
+                            <div style="color: #aaa;">|1/√2|² = 1/2</div>
+                        </div>
+                        <div class="prob-box one">
+                            <div style="font-size: 1.2em;">|1⟩</div>
+                            <div class="prob-value" style="color: #7b2cbf;">50%</div>
+                            <div style="color: #aaa;">|1/√2|² = 1/2</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Interactive Superposition Explorer</h2>
+            <p style="text-align: center; margin-bottom: 20px;">
+                Adjust the slider to change the superposition state and see how probabilities change
+            </p>
+            
+            <div class="slider-container">
+                <label style="display: block; margin-bottom: 10px;">
+                    State: |ψ⟩ = cos(θ/2)|0⟩ + sin(θ/2)|1⟩
+                </label>
+                <input type="range" id="thetaSlider" min="0" max="180" value="90" oninput="updateSuperposition()">
+                <div style="display: flex; justify-content: space-between; width: 80%; margin: 10px auto;">
+                    <span>|0⟩ (θ=0°)</span>
+                    <span>|+⟩ (θ=90°)</span>
+                    <span>|1⟩ (θ=180°)</span>
+                </div>
+            </div>
+
+            <div class="visualization-grid">
+                <div class="viz-card">
+                    <h3>Bloch Sphere</h3>
+                    <canvas id="blochCanvas" width="350" height="350"></canvas>
+                </div>
+                <div class="viz-card">
+                    <h3>Probability Bars</h3>
+                    <canvas id="probCanvas" width="350" height="350"></canvas>
+                    <div id="probText" style="margin-top: 15px; font-size: 1.2em;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Measurement Simulation</h2>
+            <p class="explanation">
+                When we measure a qubit in superposition, the state <strong>collapses</strong> to either |0⟩ or |1⟩. 
+                The probability of each outcome is determined by the squared magnitude of the corresponding amplitude.
+                Click the button to simulate multiple measurements!
+            </p>
+            
+            <div style="text-align: center;">
+                <button onclick="simulateMeasurements()">Measure 100 Times</button>
+                <button onclick="clearMeasurements()">Clear Results</button>
+            </div>
+            
+            <div class="measurement-results" id="measurementResults"></div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <div id="measurementStats" style="font-size: 1.2em;"></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Wave Function Visualization</h2>
+            <p style="text-align: center; margin-bottom: 20px;">
+                The superposition can be visualized as interfering waves
+            </p>
+            <canvas id="waveCanvas" width="800" height="250" style="width: 100%; max-width: 800px; display: block; margin: 0 auto;"></canvas>
+            <div style="text-align: center; margin-top: 15px;">
+                <button onclick="toggleWaveAnimation()">Toggle Animation</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Normalization</h2>
+            <div class="visualization-grid">
+                <div class="viz-card">
+                    <h3>Why Normalize?</h3>
+                    <p style="color: #aaa; line-height: 1.8;">
+                        The normalization condition |α|² + |β|² = 1 ensures that the total probability 
+                        of all possible measurement outcomes equals 100%. Without normalization, 
+                        probabilities wouldn't make physical sense.
+                    </p>
+                    <canvas id="normCanvas" width="300" height="200"></canvas>
+                </div>
+                <div class="viz-card">
+                    <h3>Normalization Process</h3>
+                    <div class="code-block">
+<span class="comment"># Unnormalized state</span>
+psi = ket0 + ket1
+<span class="function">print</span>(psi)
+<span class="comment"># Output: [[1], [1]]</span>
+
+<span class="comment"># Check norm (should be 1 for valid state)</span>
+norm = np.linalg.norm(psi)
+<span class="function">print</span>(norm)  <span class="comment"># Output: 1.414... (√2)</span>
+
+<span class="comment"># Normalize the state</span>
+psi_normalized = psi / norm
+<span class="comment"># OR equivalently:</span>
+psi = (<span class="number">1</span>/np.sqrt(<span class="number">2</span>)) * (ket0 + ket1)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Python Implementation</h2>
+            <div class="code-block">
+<span class="keyword">import</span> numpy <span class="keyword">as</span> np
+
+<span class="comment"># Define basis states</span>
+ket0 = np.array([[<span class="number">1</span>], [<span class="number">0</span>]], dtype=<span class="string">complex</span>)
+ket1 = np.array([[<span class="number">0</span>], [<span class="number">1</span>]], dtype=<span class="string">complex</span>)
+
+<span class="comment"># Create superposition (unnormalized first)</span>
+psi_unnorm = ket0 + ket1
+<span class="function">print</span>(<span class="string">"Unnormalized:"</span>, psi_unnorm.flatten())
+<span class="comment"># Output: [1.+0.j 1.+0.j]</span>
+
+<span class="comment"># Normalize to create valid quantum state</span>
+psi = (<span class="number">1</span>/np.sqrt(<span class="number">2</span>)) * (ket0 + ket1)
+<span class="function">print</span>(<span class="string">"Normalized |+⟩:"</span>, psi.flatten())
+<span class="comment"># Output: [0.707+0.j 0.707+0.j]</span>
+
+<span class="comment"># Verify normalization</span>
+norm = np.linalg.norm(psi)
+<span class="function">print</span>(<span class="string">"Norm:"</span>, norm)  <span class="comment"># Output: 1.0</span>
+
+<span class="comment"># Calculate measurement probabilities</span>
+prob_0 = np.abs(psi[<span class="number">0</span>])**<span class="number">2</span>
+prob_1 = np.abs(psi[<span class="number">1</span>])**<span class="number">2</span>
+<span class="function">print</span>(f<span class="string">"P(0) = {prob_0[0]:.3f}, P(1) = {prob_1[0]:.3f}"</span>)
+<span class="comment"># Output: P(0) = 0.500, P(1) = 0.500</span>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <a href="01_basis_states.html" class="nav-btn">← Previous: Basis States</a>
+            <a href="03_complex_amplitudes.html" class="nav-btn">Next: Complex Amplitudes →</a>
+        </div>
+    </div>
+
+    <script>
+        let theta = 90;
+        let waveAnimating = true;
+        let wavePhase = 0;
+        let measurements = [];
+
+        function updateSuperposition() {
+            theta = document.getElementById('thetaSlider').value;
+            drawBlochSphere();
+            drawProbabilities();
+        }
+
+        function drawBlochSphere() {
+            const canvas = document.getElementById('blochCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 350, 350);
+            
+            const cx = 175, cy = 175, r = 130;
+            const thetaRad = theta * Math.PI / 180;
+
+            // Draw sphere
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw equator
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, r, r * 0.3, 0, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw meridian
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, r * 0.3, r, 0, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw axes
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - r - 20);
+            ctx.lineTo(cx, cy + r + 20);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Labels
+            ctx.fillStyle = '#00d4ff';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText('|0⟩', cx + 10, cy - r - 5);
+            ctx.fillStyle = '#7b2cbf';
+            ctx.fillText('|1⟩', cx + 10, cy + r + 15);
+
+            // State vector
+            const z = r * Math.cos(thetaRad);
+            const x = r * Math.sin(thetaRad);
+            const px = cx + x * 0.3;
+            const py = cy - z;
+
+            // Draw vector
+            ctx.strokeStyle = '#ff6b6b';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(px, py);
+            ctx.stroke();
+
+            // Draw point
+            ctx.fillStyle = '#ff6b6b';
+            ctx.beginPath();
+            ctx.arc(px, py, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Glow effect
+            const gradient = ctx.createRadialGradient(px, py, 0, px, py, 15);
+            gradient.addColorStop(0, 'rgba(255,107,107,0.8)');
+            gradient.addColorStop(1, 'rgba(255,107,107,0)');
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(px, py, 15, 0, Math.PI * 2);
+            ctx.fill();
+
+            // State label
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Arial';
+            ctx.fillText(`θ = ${theta}°`, cx - 25, cy + r + 40);
+        }
+
+        function drawProbabilities() {
+            const canvas = document.getElementById('probCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 350, 350);
+
+            const thetaRad = theta * Math.PI / 180;
+            const prob0 = Math.cos(thetaRad / 2) ** 2;
+            const prob1 = Math.sin(thetaRad / 2) ** 2;
+
+            const barWidth = 80;
+            const maxHeight = 250;
+            const startY = 300;
+
+            // Draw |0⟩ bar
+            const height0 = prob0 * maxHeight;
+            const gradient0 = ctx.createLinearGradient(0, startY - height0, 0, startY);
+            gradient0.addColorStop(0, '#00d4ff');
+            gradient0.addColorStop(1, '#0099cc');
+            ctx.fillStyle = gradient0;
+            ctx.fillRect(70, startY - height0, barWidth, height0);
+
+            // Draw |1⟩ bar
+            const height1 = prob1 * maxHeight;
+            const gradient1 = ctx.createLinearGradient(0, startY - height1, 0, startY);
+            gradient1.addColorStop(0, '#7b2cbf');
+            gradient1.addColorStop(1, '#5a1d8f');
+            ctx.fillStyle = gradient1;
+            ctx.fillRect(200, startY - height1, barWidth, height1);
+
+            // Labels
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText('|0⟩', 95, 330);
+            ctx.fillText('|1⟩', 225, 330);
+
+            // Percentage labels
+            ctx.font = '14px Arial';
+            ctx.fillStyle = '#00d4ff';
+            ctx.fillText(`${(prob0 * 100).toFixed(1)}%`, 85, startY - height0 - 10);
+            ctx.fillStyle = '#7b2cbf';
+            ctx.fillText(`${(prob1 * 100).toFixed(1)}%`, 215, startY - height1 - 10);
+
+            // Update text
+            document.getElementById('probText').innerHTML = 
+                `|ψ⟩ = ${Math.cos(thetaRad/2).toFixed(3)}|0⟩ + ${Math.sin(thetaRad/2).toFixed(3)}|1⟩`;
+        }
+
+        function simulateMeasurements() {
+            const thetaRad = theta * Math.PI / 180;
+            const prob0 = Math.cos(thetaRad / 2) ** 2;
+            
+            const resultsDiv = document.getElementById('measurementResults');
+            let zeros = 0, ones = 0;
+
+            for (let i = 0; i < 100; i++) {
+                const result = Math.random() < prob0 ? 0 : 1;
+                measurements.push(result);
+                if (result === 0) zeros++;
+                else ones++;
+
+                const chip = document.createElement('span');
+                chip.className = `result-chip ${result === 0 ? 'zero' : 'one'}`;
+                chip.textContent = result;
+                chip.style.animation = 'fadeIn 0.3s ease';
+                resultsDiv.appendChild(chip);
+            }
+
+            document.getElementById('measurementStats').innerHTML = 
+                `Results: <span style="color: #00d4ff;">${zeros} zeros (${zeros}%)</span> | ` +
+                `<span style="color: #7b2cbf;">${ones} ones (${ones}%)</span><br>` +
+                `Expected: ${(Math.cos(theta * Math.PI / 360) ** 2 * 100).toFixed(1)}% zeros | ` +
+                `${(Math.sin(theta * Math.PI / 360) ** 2 * 100).toFixed(1)}% ones`;
+        }
+
+        function clearMeasurements() {
+            measurements = [];
+            document.getElementById('measurementResults').innerHTML = '';
+            document.getElementById('measurementStats').innerHTML = '';
+        }
+
+        function drawWaves() {
+            const canvas = document.getElementById('waveCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 800, 250);
+
+            const thetaRad = theta * Math.PI / 180;
+            const amp0 = Math.cos(thetaRad / 2);
+            const amp1 = Math.sin(thetaRad / 2);
+
+            // Draw |0⟩ wave
+            ctx.strokeStyle = '#00d4ff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let x = 0; x < 800; x++) {
+                const y = 80 - amp0 * 50 * Math.sin((x / 50) + wavePhase);
+                if (x === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            // Draw |1⟩ wave
+            ctx.strokeStyle = '#7b2cbf';
+            ctx.beginPath();
+            for (let x = 0; x < 800; x++) {
+                const y = 170 - amp1 * 50 * Math.sin((x / 50) + wavePhase + Math.PI);
+                if (x === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#00d4ff';
+            ctx.font = '14px Arial';
+            ctx.fillText(`|0⟩ amplitude: ${amp0.toFixed(3)}`, 10, 30);
+            ctx.fillStyle = '#7b2cbf';
+            ctx.fillText(`|1⟩ amplitude: ${amp1.toFixed(3)}`, 10, 220);
+
+            if (waveAnimating) {
+                wavePhase += 0.05;
+                requestAnimationFrame(drawWaves);
+            }
+        }
+
+        function toggleWaveAnimation() {
+            waveAnimating = !waveAnimating;
+            if (waveAnimating) drawWaves();
+        }
+
+        function drawNormalization() {
+            const canvas = document.getElementById('normCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 300, 200);
+
+            // Draw unit circle
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(150, 100, 80, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw axes
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.beginPath();
+            ctx.moveTo(50, 100);
+            ctx.lineTo(250, 100);
+            ctx.moveTo(150, 20);
+            ctx.lineTo(150, 180);
+            ctx.stroke();
+
+            // Draw normalized state point
+            const thetaRad = theta * Math.PI / 180;
+            const x = 150 + 80 * Math.sin(thetaRad);
+            const y = 100 - 80 * Math.cos(thetaRad);
+
+            ctx.fillStyle = '#ff6b6b';
+            ctx.beginPath();
+            ctx.arc(x, y, 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw vector
+            ctx.strokeStyle = '#ff6b6b';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(150, 100);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#fff';
+            ctx.font = '12px Arial';
+            ctx.fillText('|α|²', 250, 105);
+            ctx.fillText('|β|²', 155, 15);
+            ctx.fillText('|α|² + |β|² = 1', 100, 190);
+        }
+
+        // Initialize
+        updateSuperposition();
+        drawWaves();
+        drawNormalization();
+    </script>
+</body>
+</html>

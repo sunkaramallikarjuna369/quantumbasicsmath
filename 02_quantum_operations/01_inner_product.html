@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inner Product - Quantum Operations</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle { text-align: center; color: #888; margin-bottom: 30px; font-size: 1.2em; }
+        .section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .section h2 { color: #00d4ff; margin-bottom: 20px; font-size: 1.8em; }
+        .visualization-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-top: 20px;
+        }
+        .viz-card {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+        }
+        .viz-card h3 { color: #7b2cbf; margin-bottom: 15px; }
+        canvas { border-radius: 10px; background: rgba(0,0,0,0.5); }
+        .equation {
+            font-family: 'Times New Roman', serif;
+            font-size: 1.6em;
+            text-align: center;
+            padding: 20px;
+            background: rgba(0,212,255,0.1);
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .explanation {
+            background: rgba(123,44,191,0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            line-height: 1.8;
+        }
+        .code-block {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        .code-block .keyword { color: #569cd6; }
+        .code-block .function { color: #dcdcaa; }
+        .code-block .comment { color: #6a9955; }
+        .code-block .number { color: #b5cea8; }
+        .matrix-display {
+            font-family: 'Courier New', monospace;
+            font-size: 1.3em;
+            background: rgba(0,212,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+            margin: 10px;
+        }
+        button {
+            background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            color: white;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,212,255,0.4);
+        }
+        .nav-buttons { display: flex; justify-content: space-between; margin-top: 30px; }
+        .nav-btn {
+            background: rgba(255,255,255,0.1);
+            padding: 15px 30px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #00d4ff;
+            transition: all 0.3s ease;
+        }
+        .nav-btn:hover { background: rgba(0,212,255,0.2); }
+        .result-display {
+            font-size: 2em;
+            padding: 20px;
+            background: rgba(255,107,107,0.2);
+            border-radius: 15px;
+            margin: 20px 0;
+            border: 2px solid #ff6b6b;
+        }
+        .slider-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .slider-container input[type="range"] {
+            width: 80%;
+            height: 10px;
+            -webkit-appearance: none;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            border-radius: 5px;
+        }
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 25px;
+            height: 25px;
+            background: #fff;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Inner Product ⟨φ|ψ⟩</h1>
+        <p class="subtitle">Measuring Overlap Between Quantum States</p>
+
+        <div class="section">
+            <h2>What is the Inner Product?</h2>
+            <p class="explanation">
+                The <strong>inner product</strong> (also called bracket or dot product) measures the "overlap" between two quantum states.
+                For states |φ⟩ and |ψ⟩, the inner product ⟨φ|ψ⟩ is computed as φ†ψ (conjugate transpose of φ times ψ).
+                The result is a complex number whose squared magnitude |⟨φ|ψ⟩|² gives the probability of measuring |φ⟩ when the system is in state |ψ⟩.
+            </p>
+            
+            <div class="equation">
+                ⟨φ|ψ⟩ = φ<sup>†</sup>ψ = Σᵢ φᵢ* ψᵢ
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Computing Inner Products</h2>
+            <div class="visualization-grid">
+                <div class="viz-card">
+                    <h3>⟨0|0⟩ = 1 (Orthonormal)</h3>
+                    <div class="matrix-display">
+                        [1 0] × [1] = 1×1 + 0×0 = <span style="color: #00d4ff; font-size: 1.3em;">1</span>
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[0]
+                    </div>
+                    <p style="margin-top: 15px; color: #aaa;">
+                        A state has perfect overlap with itself
+                    </p>
+                </div>
+                
+                <div class="viz-card">
+                    <h3>⟨0|1⟩ = 0 (Orthogonal)</h3>
+                    <div class="matrix-display">
+                        [1 0] × [0] = 1×0 + 0×1 = <span style="color: #7b2cbf; font-size: 1.3em;">0</span>
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[1]
+                    </div>
+                    <p style="margin-top: 15px; color: #aaa;">
+                        Orthogonal states have zero overlap
+                    </p>
+                </div>
+            </div>
+
+            <div class="visualization-grid" style="margin-top: 20px;">
+                <div class="viz-card">
+                    <h3>⟨0|+⟩ = 1/√2 (Partial Overlap)</h3>
+                    <div class="matrix-display">
+                        [1 0] × [1/√2] = 1×(1/√2) + 0×(1/√2)
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[1/√2]
+                        <br>= <span style="color: #ff6b6b; font-size: 1.3em;">1/√2 ≈ 0.707</span>
+                    </div>
+                    <p style="margin-top: 15px; color: #aaa;">
+                        |⟨0|+⟩|² = 1/2 = 50% probability
+                    </p>
+                </div>
+                
+                <div class="viz-card">
+                    <h3>⟨+|-⟩ = 0 (Orthogonal)</h3>
+                    <div class="matrix-display">
+                        [1/√2  1/√2] × [ 1/√2]
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[-1/√2]
+                        <br>= 1/2 - 1/2 = <span style="color: #7b2cbf; font-size: 1.3em;">0</span>
+                    </div>
+                    <p style="margin-top: 15px; color: #aaa;">
+                        |+⟩ and |-⟩ are orthogonal!
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Interactive Inner Product Calculator</h2>
+            <div class="visualization-grid">
+                <div class="viz-card">
+                    <h3>State |φ⟩</h3>
+                    <canvas id="phiCanvas" width="300" height="300"></canvas>
+                    <div class="slider-container">
+                        <label>θ₁: <span id="theta1Value">0</span>°</label>
+                        <input type="range" id="theta1Slider" min="0" max="180" value="0" oninput="updateInnerProduct()">
+                    </div>
+                </div>
+                
+                <div class="viz-card">
+                    <h3>State |ψ⟩</h3>
+                    <canvas id="psiCanvas" width="300" height="300"></canvas>
+                    <div class="slider-container">
+                        <label>θ₂: <span id="theta2Value">90</span>°</label>
+                        <input type="range" id="theta2Slider" min="0" max="180" value="90" oninput="updateInnerProduct()">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="result-display" id="innerProductResult">
+                ⟨φ|ψ⟩ = 0.707 &nbsp;&nbsp; |⟨φ|ψ⟩|² = 50%
+            </div>
+            
+            <canvas id="overlapCanvas" width="800" height="200" style="width: 100%; max-width: 800px; display: block; margin: 20px auto;"></canvas>
+        </div>
+
+        <div class="section">
+            <h2>Geometric Interpretation</h2>
+            <div class="visualization-grid">
+                <div class="viz-card">
+                    <h3>Vectors on Bloch Sphere</h3>
+                    <canvas id="blochCanvas" width="400" height="400"></canvas>
+                    <p style="margin-top: 15px; color: #aaa;">
+                        Inner product relates to the angle between state vectors
+                    </p>
+                </div>
+                
+                <div class="viz-card">
+                    <h3>Probability vs Angle</h3>
+                    <canvas id="probAngleCanvas" width="400" height="300"></canvas>
+                    <p style="margin-top: 15px; color: #aaa;">
+                        |⟨φ|ψ⟩|² = cos²(θ/2) where θ is the angle on Bloch sphere
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Physical Meaning</h2>
+            <div class="explanation">
+                <p style="margin-bottom: 15px;">
+                    <strong>Probability Amplitude:</strong> ⟨φ|ψ⟩ is the probability amplitude for transitioning from |ψ⟩ to |φ⟩.
+                </p>
+                <p style="margin-bottom: 15px;">
+                    <strong>Measurement Probability:</strong> |⟨φ|ψ⟩|² is the probability of measuring the system in state |φ⟩ when it's prepared in state |ψ⟩.
+                </p>
+                <p style="margin-bottom: 15px;">
+                    <strong>Orthogonality:</strong> If ⟨φ|ψ⟩ = 0, the states are orthogonal (perfectly distinguishable).
+                </p>
+                <p>
+                    <strong>Normalization:</strong> ⟨ψ|ψ⟩ = 1 for any valid quantum state (total probability = 100%).
+                </p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Python Implementation</h2>
+            <div class="code-block">
+<span class="keyword">import</span> numpy <span class="keyword">as</span> np
+
+<span class="comment"># Define basis states</span>
+ket0 = np.array([[<span class="number">1</span>], [<span class="number">0</span>]], dtype=<span class="keyword">complex</span>)
+ket1 = np.array([[<span class="number">0</span>], [<span class="number">1</span>]], dtype=<span class="keyword">complex</span>)
+
+<span class="comment"># Define |+⟩ and |-⟩ states</span>
+ket_plus = (<span class="number">1</span>/np.sqrt(<span class="number">2</span>)) * (ket0 + ket1)
+ket_minus = (<span class="number">1</span>/np.sqrt(<span class="number">2</span>)) * (ket0 - ket1)
+
+<span class="comment"># Compute inner products using conjugate transpose</span>
+phi = ket0
+psi = ket_plus
+
+inner = phi.conj().T @ psi  <span class="comment"># ⟨φ|ψ⟩ = φ†ψ</span>
+<span class="function">print</span>(<span class="string">"⟨0|+⟩ ="</span>, inner[<span class="number">0</span>,<span class="number">0</span>])
+<span class="comment"># Output: (0.707+0j)</span>
+
+<span class="comment"># Probability of measuring |0⟩ in state |+⟩</span>
+prob = np.abs(inner)**<span class="number">2</span>
+<span class="function">print</span>(<span class="string">"|⟨0|+⟩|² ="</span>, prob[<span class="number">0</span>,<span class="number">0</span>])
+<span class="comment"># Output: 0.5</span>
+
+<span class="comment"># Verify orthogonality of |+⟩ and |-⟩</span>
+inner_pm = ket_plus.conj().T @ ket_minus
+<span class="function">print</span>(<span class="string">"⟨+|-⟩ ="</span>, inner_pm[<span class="number">0</span>,<span class="number">0</span>])
+<span class="comment"># Output: 0j (orthogonal!)</span>
+
+<span class="comment"># Verify normalization</span>
+norm = ket_plus.conj().T @ ket_plus
+<span class="function">print</span>(<span class="string">"⟨+|+⟩ ="</span>, norm[<span class="number">0</span>,<span class="number">0</span>])
+<span class="comment"># Output: (1+0j)</span>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <a href="../01_quantum_states/03_complex_amplitudes.html" class="nav-btn">← Previous: Complex Amplitudes</a>
+            <a href="02_outer_product.html" class="nav-btn">Next: Outer Product →</a>
+        </div>
+    </div>
+
+    <script>
+        let theta1 = 0;
+        let theta2 = 90;
+
+        function updateInnerProduct() {
+            theta1 = parseFloat(document.getElementById('theta1Slider').value);
+            theta2 = parseFloat(document.getElementById('theta2Slider').value);
+            document.getElementById('theta1Value').textContent = theta1;
+            document.getElementById('theta2Value').textContent = theta2;
+            
+            drawStateCanvas('phiCanvas', theta1, '#00d4ff');
+            drawStateCanvas('psiCanvas', theta2, '#7b2cbf');
+            drawBlochSphere();
+            drawOverlap();
+            drawProbAngle();
+            
+            // Calculate inner product
+            const theta1Rad = theta1 * Math.PI / 180;
+            const theta2Rad = theta2 * Math.PI / 180;
+            
+            // States: |φ⟩ = cos(θ/2)|0⟩ + sin(θ/2)|1⟩
+            const phi = [Math.cos(theta1Rad/2), Math.sin(theta1Rad/2)];
+            const psi = [Math.cos(theta2Rad/2), Math.sin(theta2Rad/2)];
+            
+            // Inner product (real for these states)
+            const inner = phi[0]*psi[0] + phi[1]*psi[1];
+            const prob = inner * inner;
+            
+            document.getElementById('innerProductResult').innerHTML = 
+                `⟨φ|ψ⟩ = ${inner.toFixed(4)} &nbsp;&nbsp; |⟨φ|ψ⟩|² = ${(prob * 100).toFixed(1)}%`;
+        }
+
+        function drawStateCanvas(canvasId, theta, color) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 300, 300);
+            
+            const cx = 150, cy = 150, r = 100;
+            const thetaRad = theta * Math.PI / 180;
+
+            // Draw sphere outline
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw equator
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, r, r * 0.3, 0, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw state vector
+            const z = r * Math.cos(thetaRad);
+            const x = r * Math.sin(thetaRad) * 0.3;
+            
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + x, cy - z);
+            ctx.stroke();
+
+            // Draw point
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(cx + x, cy - z, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Labels
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Arial';
+            ctx.fillText('|0⟩', cx + 5, cy - r - 5);
+            ctx.fillText('|1⟩', cx + 5, cy + r + 15);
+        }
+
+        function drawBlochSphere() {
+            const canvas = document.getElementById('blochCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 400, 400);
+            
+            const cx = 200, cy = 200, r = 150;
+            const theta1Rad = theta1 * Math.PI / 180;
+            const theta2Rad = theta2 * Math.PI / 180;
+
+            // Draw sphere
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, r, r * 0.3, 0, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, r * 0.3, r, 0, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw axes
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - r - 20);
+            ctx.lineTo(cx, cy + r + 20);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Labels
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Arial';
+            ctx.fillText('|0⟩', cx + 10, cy - r - 5);
+            ctx.fillText('|1⟩', cx + 10, cy + r + 15);
+
+            // Draw |φ⟩ vector
+            const z1 = r * Math.cos(theta1Rad);
+            const x1 = r * Math.sin(theta1Rad) * 0.3;
+            ctx.strokeStyle = '#00d4ff';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + x1, cy - z1);
+            ctx.stroke();
+            ctx.fillStyle = '#00d4ff';
+            ctx.beginPath();
+            ctx.arc(cx + x1, cy - z1, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillText('|φ⟩', cx + x1 + 10, cy - z1);
+
+            // Draw |ψ⟩ vector
+            const z2 = r * Math.cos(theta2Rad);
+            const x2 = r * Math.sin(theta2Rad) * 0.3;
+            ctx.strokeStyle = '#7b2cbf';
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + x2, cy - z2);
+            ctx.stroke();
+            ctx.fillStyle = '#7b2cbf';
+            ctx.beginPath();
+            ctx.arc(cx + x2, cy - z2, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillText('|ψ⟩', cx + x2 + 10, cy - z2);
+
+            // Draw angle arc
+            const angleDiff = Math.abs(theta2Rad - theta1Rad);
+            ctx.strokeStyle = '#ff6b6b';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 40, -theta1Rad + Math.PI/2, -theta2Rad + Math.PI/2, theta1 > theta2);
+            ctx.stroke();
+            ctx.fillStyle = '#ff6b6b';
+            ctx.fillText(`θ = ${Math.abs(theta2 - theta1)}°`, cx + 45, cy);
+        }
+
+        function drawOverlap() {
+            const canvas = document.getElementById('overlapCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 800, 200);
+
+            const theta1Rad = theta1 * Math.PI / 180;
+            const theta2Rad = theta2 * Math.PI / 180;
+            
+            const inner = Math.cos(theta1Rad/2)*Math.cos(theta2Rad/2) + Math.sin(theta1Rad/2)*Math.sin(theta2Rad/2);
+            const prob = inner * inner;
+
+            // Draw probability bar
+            ctx.fillStyle = 'rgba(255,255,255,0.1)';
+            ctx.fillRect(50, 80, 700, 40);
+
+            const gradient = ctx.createLinearGradient(50, 0, 50 + 700 * prob, 0);
+            gradient.addColorStop(0, '#00d4ff');
+            gradient.addColorStop(1, '#7b2cbf');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(50, 80, 700 * prob, 40);
+
+            // Labels
+            ctx.fillStyle = '#fff';
+            ctx.font = '16px Arial';
+            ctx.fillText('0%', 50, 145);
+            ctx.fillText('50%', 380, 145);
+            ctx.fillText('100%', 720, 145);
+            ctx.fillText(`|⟨φ|ψ⟩|² = ${(prob * 100).toFixed(1)}%`, 350, 60);
+
+            // Marker
+            ctx.fillStyle = '#ff6b6b';
+            ctx.beginPath();
+            ctx.moveTo(50 + 700 * prob, 75);
+            ctx.lineTo(50 + 700 * prob - 10, 60);
+            ctx.lineTo(50 + 700 * prob + 10, 60);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function drawProbAngle() {
+            const canvas = document.getElementById('probAngleCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 400, 300);
+
+            // Draw axes
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(50, 250);
+            ctx.lineTo(380, 250);
+            ctx.moveTo(50, 250);
+            ctx.lineTo(50, 30);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#fff';
+            ctx.font = '12px Arial';
+            ctx.fillText('Angle (θ)', 350, 270);
+            ctx.fillText('|⟨φ|ψ⟩|²', 10, 20);
+            ctx.fillText('0°', 50, 270);
+            ctx.fillText('90°', 200, 270);
+            ctx.fillText('180°', 350, 270);
+            ctx.fillText('1', 30, 55);
+            ctx.fillText('0.5', 20, 150);
+            ctx.fillText('0', 30, 250);
+
+            // Draw cos²(θ/2) curve
+            ctx.strokeStyle = '#00d4ff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let angle = 0; angle <= 180; angle++) {
+                const x = 50 + (angle / 180) * 330;
+                const prob = Math.cos(angle * Math.PI / 360) ** 2;
+                const y = 250 - prob * 200;
+                if (angle === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            // Mark current angle
+            const currentAngle = Math.abs(theta2 - theta1);
+            const currentX = 50 + (currentAngle / 180) * 330;
+            const currentProb = Math.cos(currentAngle * Math.PI / 360) ** 2;
+            const currentY = 250 - currentProb * 200;
+
+            ctx.fillStyle = '#ff6b6b';
+            ctx.beginPath();
+            ctx.arc(currentX, currentY, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Dashed lines to axes
+            ctx.strokeStyle = 'rgba(255,107,107,0.5)';
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(currentX, currentY);
+            ctx.lineTo(currentX, 250);
+            ctx.moveTo(currentX, currentY);
+            ctx.lineTo(50, currentY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        // Initialize
+        updateInnerProduct();
+    </script>
+</body>
+</html>
