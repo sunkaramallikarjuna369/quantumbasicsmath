@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tensor Product - Multi-Qubit Systems</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -35,7 +38,7 @@
         .section h2 { color: #00d4ff; margin-bottom: 20px; font-size: 1.8em; }
         .visualization-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 30px;
             margin-top: 20px;
         }
@@ -46,10 +49,8 @@
             text-align: center;
         }
         .viz-card h3 { color: #7b2cbf; margin-bottom: 15px; }
-        canvas { border-radius: 10px; background: rgba(0,0,0,0.5); }
         .equation {
-            font-family: 'Times New Roman', serif;
-            font-size: 1.6em;
+            font-size: 1.4em;
             text-align: center;
             padding: 20px;
             background: rgba(0,212,255,0.1);
@@ -63,42 +64,15 @@
             margin-top: 20px;
             line-height: 1.8;
         }
-        .code-block {
-            background: #1e1e1e;
+        .key-insight {
+            background: rgba(255,215,0,0.15);
+            border-left: 4px solid #ffd700;
             padding: 20px;
-            border-radius: 10px;
-            font-family: 'Courier New', monospace;
-            overflow-x: auto;
-            margin: 15px 0;
+            border-radius: 0 10px 10px 0;
+            margin: 20px 0;
+            line-height: 1.8;
         }
-        .code-block .keyword { color: #569cd6; }
-        .code-block .function { color: #dcdcaa; }
-        .code-block .comment { color: #6a9955; }
-        .code-block .number { color: #b5cea8; }
-        .matrix-display {
-            font-family: 'Courier New', monospace;
-            font-size: 1.1em;
-            background: rgba(0,212,255,0.1);
-            padding: 15px;
-            border-radius: 10px;
-            display: inline-block;
-            margin: 10px;
-        }
-        button {
-            background: linear-gradient(135deg, #00d4ff, #7b2cbf);
-            border: none;
-            padding: 15px 30px;
-            border-radius: 25px;
-            color: white;
-            font-size: 1.1em;
-            cursor: pointer;
-            margin: 10px;
-            transition: all 0.3s ease;
-        }
-        button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(0,212,255,0.4);
-        }
+        .key-insight strong { color: #ffd700; }
         .nav-buttons { display: flex; justify-content: space-between; margin-top: 30px; }
         .nav-btn {
             background: rgba(255,255,255,0.1);
@@ -109,33 +83,221 @@
             transition: all 0.3s ease;
         }
         .nav-btn:hover { background: rgba(0,212,255,0.2); }
-        .state-selector {
+
+        /* Notation guide */
+        .notation-guide {
+            background: rgba(0,0,0,0.4);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        .notation-item {
             display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .notation-item:last-child { border-bottom: none; }
+        .notation-symbol {
+            font-size: 1.8em;
+            min-width: 100px;
+            text-align: center;
+            color: #00d4ff;
+        }
+        .notation-meaning {
+            flex: 1;
+        }
+        .notation-meaning strong { color: #ffd700; }
+
+        /* Matrix styling */
+        .matrix-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .matrix {
+            display: inline-flex;
+            align-items: center;
+        }
+        .matrix-bracket {
+            font-size: 3em;
+            font-weight: 100;
+            color: #888;
+        }
+        .matrix-bracket.large {
+            font-size: 5em;
+        }
+        .matrix-content {
+            display: grid;
+            gap: 5px;
+            padding: 5px 10px;
+        }
+        .matrix-content.col-1 { grid-template-columns: 1fr; }
+        .matrix-content.col-2 { grid-template-columns: 1fr 1fr; }
+        .matrix-cell {
+            width: 50px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+        }
+        .matrix-cell.small {
+            width: 40px;
+            height: 35px;
+            font-size: 0.9em;
+        }
+        .matrix-cell.highlight-a { background: rgba(0,212,255,0.3); color: #00d4ff; }
+        .matrix-cell.highlight-b { background: rgba(123,44,191,0.3); color: #7b2cbf; }
+        .matrix-cell.highlight-result { background: rgba(255,215,0,0.3); color: #ffd700; }
+        .matrix-cell.dim { background: rgba(255,255,255,0.05); color: #666; }
+        .matrix-cell.bright { background: rgba(255,255,255,0.15); color: #fff; }
+        .operator { font-size: 2em; color: #888; margin: 0 10px; }
+        .equals { font-size: 2em; color: #00d4ff; margin: 0 15px; }
+
+        /* Step by step */
+        .step-container {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        .step-title {
+            color: #00d4ff;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .step-number {
+            background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .step-content {
+            padding: 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        /* Block visualization */
+        .block-container {
+            display: flex;
+            align-items: center;
             justify-content: center;
             gap: 20px;
             margin: 20px 0;
             flex-wrap: wrap;
         }
-        .state-btn {
-            padding: 15px 25px;
+        .block {
+            border: 2px dashed rgba(255,255,255,0.3);
             border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
+            padding: 15px;
+            text-align: center;
         }
-        .state-btn.active {
-            border-color: #00d4ff;
-            box-shadow: 0 0 20px rgba(0,212,255,0.5);
+        .block-label {
+            font-size: 0.9em;
+            color: #888;
+            margin-bottom: 10px;
         }
+
+        /* Dimension display */
         .dimension-display {
-            font-size: 1.5em;
+            font-size: 1.3em;
             padding: 20px;
             background: rgba(255,107,107,0.2);
             border-radius: 15px;
             margin: 20px 0;
             text-align: center;
         }
-    
+        .dim-item {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 8px;
+        }
+
+        /* Basis mapping */
+        .basis-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .basis-item {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .basis-item:hover {
+            background: rgba(0,212,255,0.2);
+            transform: scale(1.05);
+        }
+        .basis-item .state {
+            font-size: 1.3em;
+            color: #00d4ff;
+            margin-bottom: 5px;
+        }
+        .basis-item .index {
+            font-size: 0.9em;
+            color: #888;
+        }
+        .basis-item .vector {
+            font-size: 0.8em;
+            color: #7b2cbf;
+            margin-top: 5px;
+        }
+
+        /* Interactive section */
+        .interactive-panel {
+            background: rgba(0,0,0,0.4);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        .state-selector {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .state-selector label {
+            font-size: 1.2em;
+            min-width: 120px;
+        }
+        .state-selector select {
+            padding: 10px 20px;
+            font-size: 1.1em;
+            border-radius: 8px;
+            border: 2px solid rgba(0,212,255,0.3);
+            background: rgba(0,0,0,0.5);
+            color: #fff;
+            cursor: pointer;
+        }
+        .state-selector select:focus {
+            outline: none;
+            border-color: #00d4ff;
+        }
+
+        /* Notebook cells */
         .notebook-cell {
             background: #282c34;
             border-radius: 10px;
@@ -181,146 +343,312 @@
             margin-bottom: 8px;
             font-weight: bold;
         }
-</style>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+        .a-color { color: #00d4ff; }
+        .b-color { color: #7b2cbf; }
+    </style>
 </head>
 <body>
     <div class="container">
         <h1>Tensor Product ⊗</h1>
-        <p class="subtitle">Combining Quantum Systems - The Key to Multi-Qubit Computing</p>
+        <p class="subtitle">Combining Quantum Systems - Building Multi-Qubit States</p>
+
+        <div class="section">
+            <h2>Notation Guide - Read This First!</h2>
+            <div class="notation-guide">
+                <div class="notation-item">
+                    <div class="notation-symbol">⊗</div>
+                    <div class="notation-meaning">
+                        <strong>"Tensor product"</strong> (also called Kronecker product) - Combines two quantum systems into one larger system.
+                    </div>
+                </div>
+                <div class="notation-item">
+                    <div class="notation-symbol">|00⟩</div>
+                    <div class="notation-meaning">
+                        <strong>"Ket zero-zero"</strong> - A 2-qubit state where both qubits are 0.
+                        Same as |0⟩ ⊗ |0⟩ or |0⟩|0⟩
+                    </div>
+                </div>
+                <div class="notation-item">
+                    <div class="notation-symbol">|ψ⟩|φ⟩</div>
+                    <div class="notation-meaning">
+                        <strong>Shorthand</strong> for |ψ⟩ ⊗ |φ⟩ - The tensor product of two states.
+                    </div>
+                </div>
+                <div class="notation-item">
+                    <div class="notation-symbol">2<sup>n</sup></div>
+                    <div class="notation-meaning">
+                        <strong>Dimension formula</strong> - n qubits need a vector of size 2<sup>n</sup>.
+                        1 qubit = 2, 2 qubits = 4, 3 qubits = 8, etc.
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <div class="section">
             <h2>What is the Tensor Product?</h2>
-            <p class="explanation">
-                The <strong>tensor product</strong> (also called Kronecker product) combines two quantum systems into a larger composite system.
-                If qubit A is in state |ψ⟩ and qubit B is in state |φ⟩, the combined system is |ψ⟩⊗|φ⟩ (often written |ψφ⟩ or |ψ⟩|φ⟩).
-                This is how we build multi-qubit quantum computers - by combining individual qubits.
-            </p>
             
-            <div class="equation">
-                |ψ⟩ ⊗ |φ⟩ = |ψφ⟩ &nbsp;&nbsp; (n-dim × m-dim = nm-dim)
+            <div class="key-insight">
+                <strong>Simple Explanation:</strong> The tensor product combines two separate quantum systems into one joint system.
+                <div style="margin-top: 15px;">
+                    Think of it as: <strong>"Scale and Stack"</strong>
+                    <ol style="margin-top: 10px; margin-left: 20px;">
+                        <li>Take each element of the first vector</li>
+                        <li>Multiply it by the ENTIRE second vector</li>
+                        <li>Stack all the results into one big vector</li>
+                    </ol>
+                </div>
             </div>
 
             <div class="dimension-display">
-                <strong>Exponential Growth:</strong> n qubits → 2<sup>n</sup> dimensional state space<br>
-                <span style="color: #00d4ff;">1 qubit: 2</span> | 
-                <span style="color: #7b2cbf;">2 qubits: 4</span> | 
-                <span style="color: #ff6b6b;">3 qubits: 8</span> | 
-                <span style="color: #ffd93d;">10 qubits: 1024</span>
-            </div>
-        </div>
-
-        <div class="section">
-            <h2>Two-Qubit Basis States</h2>
-            <div class="visualization-grid">
-                <div class="viz-card">
-                    <h3>|00⟩ = |0⟩ ⊗ |0⟩</h3>
-                    <div class="matrix-display">
-                        [1]   [1]   [1×1]   [1]
-                        [0] ⊗ [0] = [1×0] = [0]
-                                    [0×1]   [0]
-                                    [0×0]   [0]
-                    </div>
-                    <canvas id="canvas00" width="150" height="150"></canvas>
-                </div>
-                
-                <div class="viz-card">
-                    <h3>|01⟩ = |0⟩ ⊗ |1⟩</h3>
-                    <div class="matrix-display">
-                        [1]   [0]   [1×0]   [0]
-                        [0] ⊗ [1] = [1×1] = [1]
-                                    [0×0]   [0]
-                                    [0×1]   [0]
-                    </div>
-                    <canvas id="canvas01" width="150" height="150"></canvas>
-                </div>
-                
-                <div class="viz-card">
-                    <h3>|10⟩ = |1⟩ ⊗ |0⟩</h3>
-                    <div class="matrix-display">
-                        [0]   [1]   [0×1]   [0]
-                        [1] ⊗ [0] = [0×0] = [0]
-                                    [1×1]   [1]
-                                    [1×0]   [0]
-                    </div>
-                    <canvas id="canvas10" width="150" height="150"></canvas>
-                </div>
-                
-                <div class="viz-card">
-                    <h3>|11⟩ = |1⟩ ⊗ |1⟩</h3>
-                    <div class="matrix-display">
-                        [0]   [0]   [0×0]   [0]
-                        [1] ⊗ [1] = [0×1] = [0]
-                                    [1×0]   [0]
-                                    [1×1]   [1]
-                    </div>
-                    <canvas id="canvas11" width="150" height="150"></canvas>
+                <strong>Why We Need It:</strong> To describe 2 qubits, we need 4 possible outcomes: |00⟩, |01⟩, |10⟩, |11⟩
+                <div style="margin-top: 15px;">
+                    <span class="dim-item" style="background: rgba(0,212,255,0.3);">1 qubit: 2 amplitudes</span>
+                    <span class="dim-item" style="background: rgba(123,44,191,0.3);">2 qubits: 4 amplitudes</span>
+                    <span class="dim-item" style="background: rgba(255,107,107,0.3);">3 qubits: 8 amplitudes</span>
+                    <span class="dim-item" style="background: rgba(255,215,0,0.3);">n qubits: 2<sup>n</sup> amplitudes</span>
                 </div>
             </div>
         </div>
 
         <div class="section">
-            <h2>Interactive Tensor Product Calculator</h2>
-            <div class="visualization-grid">
-                <div class="viz-card">
-                    <h3>Qubit A</h3>
-                    <div class="state-selector">
-                        <div class="state-btn active" data-qubit="A" data-state="0" onclick="selectState('A', '0')">|0⟩</div>
-                        <div class="state-btn" data-qubit="A" data-state="1" onclick="selectState('A', '1')">|1⟩</div>
-                        <div class="state-btn" data-qubit="A" data-state="+" onclick="selectState('A', '+')">|+⟩</div>
-                    </div>
-                    <canvas id="qubitACanvas" width="200" height="200"></canvas>
-                </div>
-                
-                <div class="viz-card">
-                    <h3>Qubit B</h3>
-                    <div class="state-selector">
-                        <div class="state-btn active" data-qubit="B" data-state="0" onclick="selectState('B', '0')">|0⟩</div>
-                        <div class="state-btn" data-qubit="B" data-state="1" onclick="selectState('B', '1')">|1⟩</div>
-                        <div class="state-btn" data-qubit="B" data-state="+" onclick="selectState('B', '+')">|+⟩</div>
-                    </div>
-                    <canvas id="qubitBCanvas" width="200" height="200"></canvas>
-                </div>
-            </div>
+            <h2>Step-by-Step Example: Computing |0⟩ ⊗ |1⟩ = |01⟩</h2>
             
-            <div class="viz-card" style="margin-top: 20px;">
-                <h3>Result: |A⟩ ⊗ |B⟩</h3>
-                <canvas id="resultCanvas" width="600" height="250"></canvas>
-                <div id="resultText" style="margin-top: 15px; font-family: monospace; font-size: 1.2em;"></div>
+            <div class="step-container">
+                <div class="step-title">
+                    <span class="step-number">1</span>
+                    Write out the two vectors
+                </div>
+                <div class="step-content">
+                    <div class="matrix-container">
+                        <div>
+                            <div style="color: #00d4ff; margin-bottom: 10px; font-weight: bold;">|0⟩ (first qubit)</div>
+                            <div class="matrix">
+                                <span class="matrix-bracket">[</span>
+                                <div class="matrix-content col-1">
+                                    <div class="matrix-cell highlight-a">1</div>
+                                    <div class="matrix-cell highlight-a">0</div>
+                                </div>
+                                <span class="matrix-bracket">]</span>
+                            </div>
+                            <div style="color: #aaa; margin-top: 10px; font-size: 0.9em;">
+                                a<sub>0</sub> = 1<br>
+                                a<sub>1</sub> = 0
+                            </div>
+                        </div>
+                        <div style="font-size: 2em; color: #888; padding: 0 30px;">⊗</div>
+                        <div>
+                            <div style="color: #7b2cbf; margin-bottom: 10px; font-weight: bold;">|1⟩ (second qubit)</div>
+                            <div class="matrix">
+                                <span class="matrix-bracket">[</span>
+                                <div class="matrix-content col-1">
+                                    <div class="matrix-cell highlight-b">0</div>
+                                    <div class="matrix-cell highlight-b">1</div>
+                                </div>
+                                <span class="matrix-bracket">]</span>
+                            </div>
+                            <div style="color: #aaa; margin-top: 10px; font-size: 0.9em;">
+                                b<sub>0</sub> = 0<br>
+                                b<sub>1</sub> = 1
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step-container">
+                <div class="step-title">
+                    <span class="step-number">2</span>
+                    Scale and Stack: Multiply each element of |0⟩ by the entire |1⟩
+                </div>
+                <div class="step-content">
+                    <div class="block-container">
+                        <div class="block" style="border-color: rgba(0,212,255,0.5);">
+                            <div class="block-label">Block 1: <span class="a-color">a<sub>0</sub></span> × |1⟩</div>
+                            <div style="font-size: 1.2em; margin: 10px 0;">
+                                <span class="a-color">1</span> × 
+                                <span class="b-color">[0, 1]</span> = 
+                                <span style="color: #ffd700;">[0, 1]</span>
+                            </div>
+                        </div>
+                        <div class="block" style="border-color: rgba(0,212,255,0.5);">
+                            <div class="block-label">Block 2: <span class="a-color">a<sub>1</sub></span> × |1⟩</div>
+                            <div style="font-size: 1.2em; margin: 10px 0;">
+                                <span class="a-color">0</span> × 
+                                <span class="b-color">[0, 1]</span> = 
+                                <span style="color: #ffd700;">[0, 0]</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step-container">
+                <div class="step-title">
+                    <span class="step-number">3</span>
+                    Stack the blocks into one vector
+                </div>
+                <div class="step-content">
+                    <div class="matrix-container">
+                        <div>
+                            <div style="color: #00d4ff; margin-bottom: 10px;">|0⟩</div>
+                            <div class="matrix">
+                                <span class="matrix-bracket">[</span>
+                                <div class="matrix-content col-1">
+                                    <div class="matrix-cell highlight-a">1</div>
+                                    <div class="matrix-cell highlight-a">0</div>
+                                </div>
+                                <span class="matrix-bracket">]</span>
+                            </div>
+                        </div>
+                        <span class="operator">⊗</span>
+                        <div>
+                            <div style="color: #7b2cbf; margin-bottom: 10px;">|1⟩</div>
+                            <div class="matrix">
+                                <span class="matrix-bracket">[</span>
+                                <div class="matrix-content col-1">
+                                    <div class="matrix-cell highlight-b">0</div>
+                                    <div class="matrix-cell highlight-b">1</div>
+                                </div>
+                                <span class="matrix-bracket">]</span>
+                            </div>
+                        </div>
+                        <span class="equals">=</span>
+                        <div>
+                            <div style="color: #ffd700; margin-bottom: 10px;">|01⟩</div>
+                            <div class="matrix">
+                                <span class="matrix-bracket large">[</span>
+                                <div class="matrix-content col-1">
+                                    <div class="matrix-cell small dim">0</div>
+                                    <div class="matrix-cell small highlight-result">1</div>
+                                    <div class="matrix-cell small dim">0</div>
+                                    <div class="matrix-cell small dim">0</div>
+                                </div>
+                                <span class="matrix-bracket large">]</span>
+                            </div>
+                            <div style="color: #aaa; margin-top: 10px; font-size: 0.8em; text-align: left;">
+                                ← |00⟩ amplitude<br>
+                                ← |01⟩ amplitude<br>
+                                ← |10⟩ amplitude<br>
+                                ← |11⟩ amplitude
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
         <div class="section">
-            <h2>Bell State - Entanglement</h2>
+            <h2>The Four 2-Qubit Basis States</h2>
             <p class="explanation">
-                The <strong>Bell state</strong> |Φ⁺⟩ = (|00⟩ + |11⟩)/√2 is a famous entangled state that CANNOT be written as a tensor product 
-                of two single-qubit states. This is the essence of quantum entanglement - the qubits are correlated in a way 
-                that has no classical analog.
+                Click on each state to see how it's constructed from single-qubit states.
             </p>
             
+            <div class="basis-grid">
+                <div class="basis-item" onclick="showBasis('00')">
+                    <div class="state">|00⟩</div>
+                    <div class="index">Index: 0</div>
+                    <div class="vector">[1,0,0,0]</div>
+                </div>
+                <div class="basis-item" onclick="showBasis('01')">
+                    <div class="state">|01⟩</div>
+                    <div class="index">Index: 1</div>
+                    <div class="vector">[0,1,0,0]</div>
+                </div>
+                <div class="basis-item" onclick="showBasis('10')">
+                    <div class="state">|10⟩</div>
+                    <div class="index">Index: 2</div>
+                    <div class="vector">[0,0,1,0]</div>
+                </div>
+                <div class="basis-item" onclick="showBasis('11')">
+                    <div class="state">|11⟩</div>
+                    <div class="index">Index: 3</div>
+                    <div class="vector">[0,0,0,1]</div>
+                </div>
+            </div>
+
+            <div id="basisDetail" class="step-container" style="display: none;">
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Interactive Calculator</h2>
+            
+            <div class="interactive-panel">
+                <div class="state-selector">
+                    <label style="color: #00d4ff;">First qubit |a⟩ =</label>
+                    <select id="qubitA" onchange="updateTensor()">
+                        <option value="0">|0⟩ = [1, 0]</option>
+                        <option value="1">|1⟩ = [0, 1]</option>
+                    </select>
+                </div>
+                <div class="state-selector">
+                    <label style="color: #7b2cbf;">Second qubit |b⟩ =</label>
+                    <select id="qubitB" onchange="updateTensor()">
+                        <option value="0">|0⟩ = [1, 0]</option>
+                        <option value="1" selected>|1⟩ = [0, 1]</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="tensorResult" class="step-container">
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Entanglement: States That Can't Be Factored</h2>
+            
+            <div class="key-insight">
+                <strong>Important!</strong> Some 2-qubit states CANNOT be written as |a⟩ ⊗ |b⟩ for any single-qubit states.
+                These are called <strong>entangled states</strong>.
+            </div>
+
             <div class="visualization-grid">
                 <div class="viz-card">
-                    <h3>Bell State |Φ⁺⟩</h3>
-                    <div class="equation" style="font-size: 1.3em;">
-                        |Φ⁺⟩ = <sup>1</sup>/<sub>√2</sub>(|00⟩ + |11⟩)
+                    <h3>Separable State (NOT entangled)</h3>
+                    <div class="equation" style="font-size: 1.1em;">
+                        |01⟩ = |0⟩ ⊗ |1⟩
                     </div>
-                    <canvas id="bellCanvas" width="350" height="250"></canvas>
-                    <p style="color: #aaa; margin-top: 10px;">
-                        50% chance of |00⟩, 50% chance of |11⟩<br>
-                        Never |01⟩ or |10⟩!
+                    <p style="color: #98c379; margin-top: 10px;">
+                        Can be factored into two separate qubits.<br>
+                        Qubit 1 is definitely |0⟩<br>
+                        Qubit 2 is definitely |1⟩
                     </p>
                 </div>
-                
+
                 <div class="viz-card">
-                    <h3>Why It's Entangled</h3>
-                    <canvas id="entanglementCanvas" width="350" height="250"></canvas>
-                    <p style="color: #aaa; margin-top: 10px;">
-                        Cannot be factored: |Φ⁺⟩ ≠ |ψ⟩⊗|φ⟩ for any |ψ⟩, |φ⟩
+                    <h3>Bell State (ENTANGLED)</h3>
+                    <div class="equation" style="font-size: 1.1em;">
+                        |Φ⁺⟩ = (|00⟩ + |11⟩)/√2
+                    </div>
+                    <p style="color: #e06c75; margin-top: 10px;">
+                        CANNOT be factored!<br>
+                        Neither qubit has a definite value.<br>
+                        But they're perfectly correlated.
                     </p>
-                    <button onclick="animateEntanglement()">Visualize Correlation</button>
+                </div>
+            </div>
+
+            <div class="step-container">
+                <div class="step-title">
+                    <span class="step-number">?</span>
+                    Why can't the Bell state be factored?
+                </div>
+                <div class="step-content">
+                    <p style="margin-bottom: 15px;">
+                        If |Φ⁺⟩ = |a⟩ ⊗ |b⟩ for some |a⟩ = [α, β] and |b⟩ = [γ, δ], then:
+                    </p>
+                    <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin: 10px 0;">
+                        <div>|00⟩ amplitude: α×γ = 1/√2</div>
+                        <div>|01⟩ amplitude: α×δ = 0</div>
+                        <div>|10⟩ amplitude: β×γ = 0</div>
+                        <div>|11⟩ amplitude: β×δ = 1/√2</div>
+                    </div>
+                    <p style="color: #e06c75; margin-top: 15px;">
+                        <strong>Problem:</strong> If α×δ = 0, then either α=0 or δ=0.<br>
+                        But if α=0, then α×γ can't equal 1/√2!<br>
+                        <strong>Contradiction!</strong> So no such |a⟩, |b⟩ exist.
+                    </p>
                 </div>
             </div>
         </div>
@@ -328,42 +656,36 @@
         <div class="section">
             <h2>Tensor Product of Operators</h2>
             <p class="explanation">
-                When applying gates to multi-qubit systems, we use tensor products of operators.
-                To apply gate U to qubit 1 only in a 2-qubit system: U ⊗ I (U on first, Identity on second).
+                To apply a gate to just ONE qubit in a multi-qubit system, use tensor products with the identity matrix I.
             </p>
-            
+
             <div class="visualization-grid">
                 <div class="viz-card">
-                    <h3>H ⊗ I (Hadamard on qubit 1)</h3>
-                    <canvas id="HICanvas" width="300" height="200"></canvas>
-                    <div class="matrix-display" style="font-size: 0.9em;">
-                        H⊗I = [H  0 ] = [1/√2   1/√2   0      0   ]
-                              [0  H ]   [1/√2  -1/√2   0      0   ]
-                                        [0      0     1/√2   1/√2 ]
-                                        [0      0     1/√2  -1/√2 ]
+                    <h3>H ⊗ I</h3>
+                    <p style="color: #aaa; margin-bottom: 15px;">Apply Hadamard to first qubit only</p>
+                    <div style="font-size: 0.9em; color: #888;">
+                        First qubit: H (creates superposition)<br>
+                        Second qubit: I (does nothing)
                     </div>
                 </div>
-                
+
                 <div class="viz-card">
-                    <h3>I ⊗ H (Hadamard on qubit 2)</h3>
-                    <canvas id="IHCanvas" width="300" height="200"></canvas>
-                    <div class="matrix-display" style="font-size: 0.9em;">
-                        I⊗H = [H  0 ] = [1/√2   1/√2   0      0   ]
-                              [0  H ]   [1/√2  -1/√2   0      0   ]
-                                        [0      0     1/√2   1/√2 ]
-                                        [0      0     1/√2  -1/√2 ]
+                    <h3>I ⊗ H</h3>
+                    <p style="color: #aaa; margin-bottom: 15px;">Apply Hadamard to second qubit only</p>
+                    <div style="font-size: 0.9em; color: #888;">
+                        First qubit: I (does nothing)<br>
+                        Second qubit: H (creates superposition)
                     </div>
                 </div>
             </div>
         </div>
 
-        
         <div class="section">
             <h2>Notebook Code (Exact Cells)</h2>
 
             <div class="notebook-cell">
                 <div class="cell-label">Cell 16</div>
-                <pre><code class="language-python"># |00&gt; = |0&gt; ⊗ |0&gt;
+                <pre><code class="language-python"># |00> = |0> ⊗ |0>
 ket00 = np.kron(ket0, ket0)
 print(ket00)</code></pre>
                 <div class="cell-output">
@@ -371,14 +693,15 @@ print(ket00)</code></pre>
                     <pre>[[1.+0.j]
  [0.+0.j]
  [0.+0.j]
- [0.+0.j]]
-</pre>
+ [0.+0.j]]</pre>
                 </div>
             </div>
+
             <div class="notebook-cell">
                 <div class="cell-label">Cell 17</div>
                 <pre><code class="language-python">bell = (1/np.sqrt(2)) * (ket00 + np.kron(ket1, ket1))</code></pre>
             </div>
+
             <div class="notebook-cell">
                 <div class="cell-label">Cell 18</div>
                 <pre><code class="language-python">H1 = np.kron(H, I)   # H on qubit 1, I on qubit 2</code></pre>
@@ -387,295 +710,153 @@ print(ket00)</code></pre>
 
         <div class="nav-buttons">
             <a href="02_outer_product.html" class="nav-btn">← Previous: Outer Product</a>
-            <a href="../03_quantum_gates/01_pauli_gates.html" class="nav-btn">Next: Pauli Gates →</a>
+            <a href="../03_quantum_gates/01_pauli_gates.html" class="nav-btn">Next: Quantum Gates →</a>
         </div>
     </div>
 
     <script>
-        let stateA = '0';
-        let stateB = '0';
-
         const states = {
-            '0': [1, 0],
-            '1': [0, 1],
-            '+': [1/Math.sqrt(2), 1/Math.sqrt(2)]
+            '0': { ket: [1, 0], name: '|0⟩' },
+            '1': { ket: [0, 1], name: '|1⟩' }
         };
 
-        function selectState(qubit, state) {
-            // Update selection
-            document.querySelectorAll(`.state-btn[data-qubit="${qubit}"]`).forEach(btn => {
-                btn.classList.remove('active');
-            });
-            document.querySelector(`.state-btn[data-qubit="${qubit}"][data-state="${state}"]`).classList.add('active');
+        function showBasis(state) {
+            const a = state[0];
+            const b = state[1];
+            const ketA = states[a].ket;
+            const ketB = states[b].ket;
             
-            if (qubit === 'A') stateA = state;
-            else stateB = state;
-            
-            updateVisualization();
-        }
-
-        function updateVisualization() {
-            drawQubitState('qubitACanvas', states[stateA], '#00d4ff');
-            drawQubitState('qubitBCanvas', states[stateB], '#7b2cbf');
-            drawTensorResult();
-        }
-
-        function drawQubitState(canvasId, state, color) {
-            const canvas = document.getElementById(canvasId);
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, 200, 200);
-
-            const barWidth = 60;
-            const maxHeight = 150;
-            const startY = 180;
-
-            // |0⟩ bar
-            const height0 = Math.abs(state[0]) * maxHeight;
-            ctx.fillStyle = state[0] > 0 ? color : 'rgba(255,107,107,0.8)';
-            ctx.fillRect(40, startY - height0, barWidth, height0);
-
-            // |1⟩ bar
-            const height1 = Math.abs(state[1]) * maxHeight;
-            ctx.fillStyle = state[1] > 0 ? color : 'rgba(255,107,107,0.8)';
-            ctx.fillRect(110, startY - height1, barWidth, height1);
-
-            // Labels
-            ctx.fillStyle = '#fff';
-            ctx.font = '14px Arial';
-            ctx.fillText('|0⟩', 60, 195);
-            ctx.fillText('|1⟩', 130, 195);
-
-            // Values
-            ctx.font = '12px Arial';
-            ctx.fillText(state[0].toFixed(2), 55, startY - height0 - 5);
-            ctx.fillText(state[1].toFixed(2), 125, startY - height1 - 5);
-        }
-
-        function drawTensorResult() {
-            const canvas = document.getElementById('resultCanvas');
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, 600, 250);
-
-            const a = states[stateA];
-            const b = states[stateB];
-
-            // Compute tensor product
             const result = [
-                a[0] * b[0],  // |00⟩
-                a[0] * b[1],  // |01⟩
-                a[1] * b[0],  // |10⟩
-                a[1] * b[1]   // |11⟩
+                ketA[0] * ketB[0],
+                ketA[0] * ketB[1],
+                ketA[1] * ketB[0],
+                ketA[1] * ketB[1]
             ];
 
-            const barWidth = 80;
-            const maxHeight = 180;
-            const startY = 220;
-            const labels = ['|00⟩', '|01⟩', '|10⟩', '|11⟩'];
-            const colors = ['#00d4ff', '#7b2cbf', '#ff6b6b', '#ffd93d'];
-
-            for (let i = 0; i < 4; i++) {
-                const x = 80 + i * 130;
-                const height = Math.abs(result[i]) * maxHeight;
-                
-                ctx.fillStyle = result[i] >= 0 ? colors[i] : 'rgba(255,255,255,0.3)';
-                ctx.fillRect(x, startY - height, barWidth, height);
-
-                ctx.fillStyle = '#fff';
-                ctx.font = '14px Arial';
-                ctx.fillText(labels[i], x + 25, 240);
-                ctx.font = '12px Arial';
-                ctx.fillText(result[i].toFixed(3), x + 20, startY - height - 5);
-            }
-
-            // Update text
-            document.getElementById('resultText').innerHTML = 
-                `|${stateA}⟩ ⊗ |${stateB}⟩ = [${result.map(r => r.toFixed(3)).join(', ')}]`;
+            const detailDiv = document.getElementById('basisDetail');
+            detailDiv.style.display = 'block';
+            detailDiv.innerHTML = `
+                <div class="step-title">
+                    <span class="step-number">!</span>
+                    |${state}⟩ = |${a}⟩ ⊗ |${b}⟩
+                </div>
+                <div class="step-content">
+                    <div class="matrix-container">
+                        <div>
+                            <div style="color: #00d4ff; margin-bottom: 10px;">|${a}⟩</div>
+                            <div class="matrix">
+                                <span class="matrix-bracket">[</span>
+                                <div class="matrix-content col-1">
+                                    <div class="matrix-cell ${ketA[0] ? 'highlight-a' : 'dim'}">${ketA[0]}</div>
+                                    <div class="matrix-cell ${ketA[1] ? 'highlight-a' : 'dim'}">${ketA[1]}</div>
+                                </div>
+                                <span class="matrix-bracket">]</span>
+                            </div>
+                        </div>
+                        <span class="operator">⊗</span>
+                        <div>
+                            <div style="color: #7b2cbf; margin-bottom: 10px;">|${b}⟩</div>
+                            <div class="matrix">
+                                <span class="matrix-bracket">[</span>
+                                <div class="matrix-content col-1">
+                                    <div class="matrix-cell ${ketB[0] ? 'highlight-b' : 'dim'}">${ketB[0]}</div>
+                                    <div class="matrix-cell ${ketB[1] ? 'highlight-b' : 'dim'}">${ketB[1]}</div>
+                                </div>
+                                <span class="matrix-bracket">]</span>
+                            </div>
+                        </div>
+                        <span class="equals">=</span>
+                        <div>
+                            <div style="color: #ffd700; margin-bottom: 10px;">|${state}⟩</div>
+                            <div class="matrix">
+                                <span class="matrix-bracket large">[</span>
+                                <div class="matrix-content col-1">
+                                    <div class="matrix-cell small ${result[0] ? 'highlight-result' : 'dim'}">${result[0]}</div>
+                                    <div class="matrix-cell small ${result[1] ? 'highlight-result' : 'dim'}">${result[1]}</div>
+                                    <div class="matrix-cell small ${result[2] ? 'highlight-result' : 'dim'}">${result[2]}</div>
+                                    <div class="matrix-cell small ${result[3] ? 'highlight-result' : 'dim'}">${result[3]}</div>
+                                </div>
+                                <span class="matrix-bracket large">]</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 20px; text-align: center; color: #aaa;">
+                        Index in vector: ${parseInt(state, 2)} (binary ${state} = decimal ${parseInt(state, 2)})
+                    </div>
+                </div>
+            `;
         }
 
-        function drawBasisState(canvasId, index) {
-            const canvas = document.getElementById(canvasId);
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, 150, 150);
+        function updateTensor() {
+            const aKey = document.getElementById('qubitA').value;
+            const bKey = document.getElementById('qubitB').value;
+            
+            const ketA = states[aKey].ket;
+            const ketB = states[bKey].ket;
+            
+            const result = [
+                ketA[0] * ketB[0],
+                ketA[0] * ketB[1],
+                ketA[1] * ketB[0],
+                ketA[1] * ketB[1]
+            ];
 
-            const colors = ['#00d4ff', '#7b2cbf', '#ff6b6b', '#ffd93d'];
-            const labels = ['|00⟩', '|01⟩', '|10⟩', '|11⟩'];
+            const stateName = `|${aKey}${bKey}⟩`;
 
-            // Draw 4 bars
-            for (let i = 0; i < 4; i++) {
-                const x = 15 + i * 35;
-                const height = i === index ? 100 : 0;
-                
-                ctx.fillStyle = i === index ? colors[i] : 'rgba(255,255,255,0.1)';
-                ctx.fillRect(x, 130 - height, 25, height);
-            }
-
-            // Highlight the active one
-            ctx.fillStyle = colors[index];
-            ctx.font = 'bold 12px Arial';
-            ctx.fillText(labels[index], 55, 145);
-        }
-
-        function drawBellState() {
-            const canvas = document.getElementById('bellCanvas');
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, 350, 250);
-
-            const barWidth = 60;
-            const maxHeight = 180;
-            const startY = 220;
-            const labels = ['|00⟩', '|01⟩', '|10⟩', '|11⟩'];
-            const values = [1/Math.sqrt(2), 0, 0, 1/Math.sqrt(2)];
-            const colors = ['#00d4ff', 'rgba(255,255,255,0.1)', 'rgba(255,255,255,0.1)', '#ffd93d'];
-
-            for (let i = 0; i < 4; i++) {
-                const x = 30 + i * 80;
-                const height = values[i] * maxHeight;
-                
-                ctx.fillStyle = colors[i];
-                ctx.fillRect(x, startY - height, barWidth, height);
-
-                ctx.fillStyle = '#fff';
-                ctx.font = '12px Arial';
-                ctx.fillText(labels[i], x + 15, 240);
-                if (values[i] > 0) {
-                    ctx.fillText((values[i]).toFixed(3), x + 10, startY - height - 5);
-                }
-            }
-        }
-
-        let entangleAnimating = false;
-        function animateEntanglement() {
-            if (entangleAnimating) return;
-            entangleAnimating = true;
-
-            const canvas = document.getElementById('entanglementCanvas');
-            const ctx = canvas.getContext('2d');
-            let frame = 0;
-
-            function animate() {
-                ctx.clearRect(0, 0, 350, 250);
-
-                // Draw two qubits
-                const qubit1X = 100;
-                const qubit2X = 250;
-                const y = 125;
-
-                // Qubit 1
-                ctx.beginPath();
-                ctx.arc(qubit1X, y, 40, 0, Math.PI * 2);
-                ctx.strokeStyle = '#00d4ff';
-                ctx.lineWidth = 3;
-                ctx.stroke();
-                ctx.fillStyle = '#00d4ff';
-                ctx.font = 'bold 20px Arial';
-                ctx.fillText('A', qubit1X - 8, y + 7);
-
-                // Qubit 2
-                ctx.beginPath();
-                ctx.arc(qubit2X, y, 40, 0, Math.PI * 2);
-                ctx.strokeStyle = '#7b2cbf';
-                ctx.stroke();
-                ctx.fillStyle = '#7b2cbf';
-                ctx.fillText('B', qubit2X - 8, y + 7);
-
-                // Entanglement connection (wavy line)
-                ctx.strokeStyle = '#ff6b6b';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                for (let x = qubit1X + 40; x < qubit2X - 40; x++) {
-                    const waveY = y + 10 * Math.sin((x - qubit1X) / 10 + frame / 10);
-                    if (x === qubit1X + 40) ctx.moveTo(x, waveY);
-                    else ctx.lineTo(x, waveY);
-                }
-                ctx.stroke();
-
-                // Show correlation
-                const state = frame % 60 < 30 ? '00' : '11';
-                ctx.fillStyle = '#fff';
-                ctx.font = '16px Arial';
-                ctx.fillText(`Measured: |${state}⟩`, 130, 220);
-
-                // State indicators
-                const isZero = state === '00';
-                ctx.fillStyle = isZero ? '#00d4ff' : '#7b2cbf';
-                ctx.beginPath();
-                ctx.arc(qubit1X, y - 60, 15, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.fillStyle = '#000';
-                ctx.font = 'bold 14px Arial';
-                ctx.fillText(isZero ? '0' : '1', qubit1X - 5, y - 55);
-
-                ctx.fillStyle = isZero ? '#00d4ff' : '#7b2cbf';
-                ctx.beginPath();
-                ctx.arc(qubit2X, y - 60, 15, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.fillStyle = '#000';
-                ctx.fillText(isZero ? '0' : '1', qubit2X - 5, y - 55);
-
-                frame++;
-                if (frame < 120) {
-                    requestAnimationFrame(animate);
-                } else {
-                    entangleAnimating = false;
-                }
-            }
-            animate();
-        }
-
-        function drawOperatorTensor(canvasId, label) {
-            const canvas = document.getElementById(canvasId);
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, 300, 200);
-
-            // Draw 4x4 grid
-            const cellSize = 40;
-            const startX = 30;
-            const startY = 20;
-
-            for (let i = 0; i < 4; i++) {
-                for (let j = 0; j < 4; j++) {
-                    const x = startX + j * cellSize;
-                    const y = startY + i * cellSize;
+            const resultDiv = document.getElementById('tensorResult');
+            resultDiv.innerHTML = `
+                <div class="step-title">
+                    <span class="step-number">!</span>
+                    Result: ${states[aKey].name} ⊗ ${states[bKey].name} = ${stateName}
+                </div>
+                <div class="step-content">
+                    <div class="block-container">
+                        <div class="block" style="border-color: rgba(0,212,255,0.5);">
+                            <div class="block-label">Block 1: <span class="a-color">${ketA[0]}</span> × ${states[bKey].name}</div>
+                            <div style="font-size: 1.1em; margin: 10px 0;">
+                                <span class="a-color">${ketA[0]}</span> × 
+                                <span class="b-color">[${ketB[0]}, ${ketB[1]}]</span> = 
+                                <span style="color: #ffd700;">[${ketA[0]*ketB[0]}, ${ketA[0]*ketB[1]}]</span>
+                            </div>
+                        </div>
+                        <div class="block" style="border-color: rgba(0,212,255,0.5);">
+                            <div class="block-label">Block 2: <span class="a-color">${ketA[1]}</span> × ${states[bKey].name}</div>
+                            <div style="font-size: 1.1em; margin: 10px 0;">
+                                <span class="a-color">${ketA[1]}</span> × 
+                                <span class="b-color">[${ketB[0]}, ${ketB[1]}]</span> = 
+                                <span style="color: #ffd700;">[${ketA[1]*ketB[0]}, ${ketA[1]*ketB[1]}]</span>
+                            </div>
+                        </div>
+                    </div>
                     
-                    // Color based on position (simplified visualization)
-                    let intensity = 0;
-                    if (label === 'HI') {
-                        // H on first qubit
-                        if ((i < 2 && j < 2) || (i >= 2 && j >= 2)) {
-                            intensity = 0.5;
-                        }
-                    } else {
-                        // H on second qubit
-                        if ((i % 2 === 0 && j % 2 === 0) || (i % 2 === 1 && j % 2 === 1)) {
-                            intensity = 0.5;
-                        }
-                    }
-                    
-                    ctx.fillStyle = `rgba(0, 212, 255, ${intensity})`;
-                    ctx.fillRect(x, y, cellSize - 2, cellSize - 2);
-                }
-            }
-
-            // Labels
-            ctx.fillStyle = '#fff';
-            ctx.font = '12px Arial';
-            ctx.fillText('|00⟩', startX + 5, startY + cellSize * 4 + 15);
-            ctx.fillText('|01⟩', startX + cellSize + 5, startY + cellSize * 4 + 15);
-            ctx.fillText('|10⟩', startX + cellSize * 2 + 5, startY + cellSize * 4 + 15);
-            ctx.fillText('|11⟩', startX + cellSize * 3 + 5, startY + cellSize * 4 + 15);
+                    <div class="matrix-container" style="margin-top: 20px;">
+                        <div>
+                            <div style="color: #ffd700; margin-bottom: 10px;">Final Result: ${stateName}</div>
+                            <div class="matrix">
+                                <span class="matrix-bracket large">[</span>
+                                <div class="matrix-content col-1">
+                                    <div class="matrix-cell small ${result[0] ? 'highlight-result' : 'dim'}">${result[0]}</div>
+                                    <div class="matrix-cell small ${result[1] ? 'highlight-result' : 'dim'}">${result[1]}</div>
+                                    <div class="matrix-cell small ${result[2] ? 'highlight-result' : 'dim'}">${result[2]}</div>
+                                    <div class="matrix-cell small ${result[3] ? 'highlight-result' : 'dim'}">${result[3]}</div>
+                                </div>
+                                <span class="matrix-bracket large">]</span>
+                            </div>
+                            <div style="color: #aaa; margin-top: 10px; font-size: 0.8em; text-align: left;">
+                                ← |00⟩ amplitude<br>
+                                ← |01⟩ amplitude<br>
+                                ← |10⟩ amplitude<br>
+                                ← |11⟩ amplitude
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
 
         // Initialize
-        drawBasisState('canvas00', 0);
-        drawBasisState('canvas01', 1);
-        drawBasisState('canvas10', 2);
-        drawBasisState('canvas11', 3);
-        updateVisualization();
-        drawBellState();
-        drawOperatorTensor('HICanvas', 'HI');
-        drawOperatorTensor('IHCanvas', 'IH');
+        updateTensor();
+        hljs.highlightAll();
     </script>
-
-    <script>hljs.highlightAll();</script>
 </body>
 </html>

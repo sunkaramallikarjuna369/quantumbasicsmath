@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Outer Product - Quantum Operations</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -35,7 +38,7 @@
         .section h2 { color: #00d4ff; margin-bottom: 20px; font-size: 1.8em; }
         .visualization-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 30px;
             margin-top: 20px;
         }
@@ -46,10 +49,8 @@
             text-align: center;
         }
         .viz-card h3 { color: #7b2cbf; margin-bottom: 15px; }
-        canvas { border-radius: 10px; background: rgba(0,0,0,0.5); }
         .equation {
-            font-family: 'Times New Roman', serif;
-            font-size: 1.6em;
+            font-size: 1.4em;
             text-align: center;
             padding: 20px;
             background: rgba(0,212,255,0.1);
@@ -63,59 +64,15 @@
             margin-top: 20px;
             line-height: 1.8;
         }
-        .code-block {
-            background: #1e1e1e;
+        .key-insight {
+            background: rgba(255,215,0,0.15);
+            border-left: 4px solid #ffd700;
             padding: 20px;
-            border-radius: 10px;
-            font-family: 'Courier New', monospace;
-            overflow-x: auto;
-            margin: 15px 0;
+            border-radius: 0 10px 10px 0;
+            margin: 20px 0;
+            line-height: 1.8;
         }
-        .code-block .keyword { color: #569cd6; }
-        .code-block .function { color: #dcdcaa; }
-        .code-block .comment { color: #6a9955; }
-        .code-block .number { color: #b5cea8; }
-        .matrix-display {
-            font-family: 'Courier New', monospace;
-            font-size: 1.2em;
-            background: rgba(0,212,255,0.1);
-            padding: 20px;
-            border-radius: 10px;
-            display: inline-block;
-            margin: 10px;
-        }
-        .matrix-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 60px);
-            gap: 5px;
-            margin: 10px auto;
-            width: fit-content;
-        }
-        .matrix-cell {
-            width: 60px;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 1.2em;
-        }
-        button {
-            background: linear-gradient(135deg, #00d4ff, #7b2cbf);
-            border: none;
-            padding: 15px 30px;
-            border-radius: 25px;
-            color: white;
-            font-size: 1.1em;
-            cursor: pointer;
-            margin: 10px;
-            transition: all 0.3s ease;
-        }
-        button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(0,212,255,0.4);
-        }
+        .key-insight strong { color: #ffd700; }
         .nav-buttons { display: flex; justify-content: space-between; margin-top: 30px; }
         .nav-btn {
             background: rgba(255,255,255,0.1);
@@ -126,21 +83,172 @@
             transition: all 0.3s ease;
         }
         .nav-btn:hover { background: rgba(0,212,255,0.2); }
-        .comparison-table {
-            width: 100%;
-            border-collapse: collapse;
+
+        /* Notation guide */
+        .notation-guide {
+            background: rgba(0,0,0,0.4);
+            border-radius: 15px;
+            padding: 25px;
             margin: 20px 0;
         }
-        .comparison-table th, .comparison-table td {
+        .notation-item {
+            display: flex;
+            align-items: center;
+            gap: 20px;
             padding: 15px;
-            border: 1px solid rgba(255,255,255,0.2);
-            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
-        .comparison-table th {
-            background: rgba(0,212,255,0.2);
+        .notation-item:last-child { border-bottom: none; }
+        .notation-symbol {
+            font-size: 1.8em;
+            min-width: 80px;
+            text-align: center;
             color: #00d4ff;
         }
-    
+        .notation-meaning {
+            flex: 1;
+        }
+        .notation-meaning strong { color: #ffd700; }
+
+        /* Matrix styling */
+        .matrix-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .matrix {
+            display: inline-flex;
+            align-items: center;
+        }
+        .matrix-bracket {
+            font-size: 3em;
+            font-weight: 100;
+            color: #888;
+        }
+        .matrix-content {
+            display: grid;
+            gap: 5px;
+            padding: 5px 10px;
+        }
+        .matrix-content.col-1 { grid-template-columns: 1fr; }
+        .matrix-content.col-2 { grid-template-columns: 1fr 1fr; }
+        .matrix-cell {
+            width: 50px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+        }
+        .matrix-cell.highlight-row { background: rgba(0,212,255,0.3); color: #00d4ff; }
+        .matrix-cell.highlight-col { background: rgba(123,44,191,0.3); color: #7b2cbf; }
+        .matrix-cell.highlight-result { background: rgba(255,215,0,0.3); color: #ffd700; }
+        .matrix-cell.dim { background: rgba(255,255,255,0.05); color: #666; }
+        .matrix-cell.bright { background: rgba(255,255,255,0.15); color: #fff; }
+        .operator { font-size: 2em; color: #888; margin: 0 10px; }
+        .equals { font-size: 2em; color: #00d4ff; margin: 0 15px; }
+
+        /* Step by step */
+        .step-container {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        .step-title {
+            color: #00d4ff;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .step-number {
+            background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .step-content {
+            padding: 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        /* Calculation grid */
+        .calc-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .calc-cell {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+        .calc-cell .position {
+            color: #888;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+        .calc-cell .formula {
+            font-size: 1.2em;
+            margin: 10px 0;
+        }
+        .calc-cell .result {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        .phi-color { color: #00d4ff; }
+        .psi-color { color: #7b2cbf; }
+
+        /* Interactive section */
+        .interactive-panel {
+            background: rgba(0,0,0,0.4);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        .state-selector {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .state-selector label {
+            font-size: 1.2em;
+            min-width: 120px;
+        }
+        .state-selector select {
+            padding: 10px 20px;
+            font-size: 1.1em;
+            border-radius: 8px;
+            border: 2px solid rgba(0,212,255,0.3);
+            background: rgba(0,0,0,0.5);
+            color: #fff;
+            cursor: pointer;
+        }
+        .state-selector select:focus {
+            outline: none;
+            border-color: #00d4ff;
+        }
+
+        /* Notebook cells */
         .notebook-cell {
             background: #282c34;
             border-radius: 10px;
@@ -186,11 +294,7 @@
             margin-bottom: 8px;
             font-weight: bold;
         }
-</style>
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+    </style>
 </head>
 <body>
     <div class="container">
@@ -198,226 +302,428 @@
         <p class="subtitle">Building Operators from Quantum States</p>
 
         <div class="section">
-            <h2>What is the Outer Product?</h2>
-            <p class="explanation">
-                The <strong>outer product</strong> of two states |φ⟩ and |ψ⟩ creates a <strong>matrix (operator)</strong>.
-                Unlike the inner product ⟨φ|ψ⟩ which gives a scalar, the outer product |φ⟩⟨ψ| gives a matrix that can act on other states.
-                This is fundamental for constructing projection operators, density matrices, and quantum gates.
-            </p>
+            <h2>Notation Guide - Read This First!</h2>
+            <div class="notation-guide">
+                <div class="notation-item">
+                    <div class="notation-symbol">|0⟩</div>
+                    <div class="notation-meaning">
+                        <strong>"Ket zero"</strong> - A column vector representing the quantum state "0". 
+                        Written as: <code>[1, 0]<sup>T</sup></code> (T means transpose to column)
+                    </div>
+                </div>
+                <div class="notation-item">
+                    <div class="notation-symbol">⟨0|</div>
+                    <div class="notation-meaning">
+                        <strong>"Bra zero"</strong> - A row vector, the conjugate transpose of |0⟩.
+                        Written as: <code>[1, 0]</code> (a row)
+                    </div>
+                </div>
+                <div class="notation-item">
+                    <div class="notation-symbol">|φ⟩⟨ψ|</div>
+                    <div class="notation-meaning">
+                        <strong>"Outer product"</strong> - Column vector |φ⟩ times row vector ⟨ψ|.
+                        Result is a <strong>matrix</strong> (2×2 for single qubits).
+                    </div>
+                </div>
+                <div class="notation-item">
+                    <div class="notation-symbol">⟨φ|ψ⟩</div>
+                    <div class="notation-meaning">
+                        <strong>"Inner product"</strong> - Row vector ⟨φ| times column vector |ψ⟩.
+                        Result is a <strong>number</strong> (scalar).
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>What Does the Outer Product Do?</h2>
             
-            <div class="equation">
-                |φ⟩⟨ψ| = φ × ψ<sup>†</sup> &nbsp;&nbsp; (column × row = matrix)
+            <div class="key-insight">
+                <strong>Simple Explanation:</strong> The outer product |φ⟩⟨ψ| creates an operator (matrix) that:
+                <ol style="margin-top: 10px; margin-left: 20px;">
+                    <li><strong>Checks</strong> how much the input overlaps with |ψ⟩</li>
+                    <li><strong>Outputs</strong> |φ⟩ scaled by that overlap</li>
+                </ol>
+                <div style="margin-top: 15px; font-size: 1.3em; text-align: center; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px;">
+                    (|φ⟩⟨ψ|) |x⟩ = |φ⟩ × ⟨ψ|x⟩
+                </div>
+                <p style="margin-top: 10px; color: #aaa; text-align: center;">
+                    "Apply operator to |x⟩" = "output |φ⟩ times the overlap of ψ with x"
+                </p>
             </div>
         </div>
 
         <div class="section">
-            <h2>Inner vs Outer Product</h2>
-            <table class="comparison-table">
-                <tr>
-                    <th>Property</th>
-                    <th>Inner Product ⟨φ|ψ⟩</th>
-                    <th>Outer Product |φ⟩⟨ψ|</th>
-                </tr>
-                <tr>
-                    <td>Result Type</td>
-                    <td>Scalar (complex number)</td>
-                    <td>Matrix (operator)</td>
-                </tr>
-                <tr>
-                    <td>Dimensions</td>
-                    <td>1×n × n×1 = 1×1</td>
-                    <td>n×1 × 1×n = n×n</td>
-                </tr>
-                <tr>
-                    <td>Physical Meaning</td>
-                    <td>Overlap/probability amplitude</td>
-                    <td>Projection/transformation operator</td>
-                </tr>
-                <tr>
-                    <td>Example</td>
-                    <td>⟨0|1⟩ = 0</td>
-                    <td>|0⟩⟨1| = [[0,1],[0,0]]</td>
-                </tr>
-            </table>
-        </div>
-
-        <div class="section">
-            <h2>Computing Outer Products</h2>
-            <div class="visualization-grid">
-                <div class="viz-card">
-                    <h3>|0⟩⟨0| - Projection onto |0⟩</h3>
-                    <div class="matrix-display">
-                        [1]     [1 0] = [1 0]
-                        [0]  ×         [0 0]
-                    </div>
-                    <div class="matrix-grid">
-                        <div class="matrix-cell" style="background: rgba(0,212,255,0.5);">1</div>
-                        <div class="matrix-cell" style="background: rgba(255,255,255,0.1);">0</div>
-                        <div class="matrix-cell" style="background: rgba(255,255,255,0.1);">0</div>
-                        <div class="matrix-cell" style="background: rgba(255,255,255,0.1);">0</div>
-                    </div>
-                    <p style="color: #aaa; margin-top: 10px;">Projects any state onto |0⟩</p>
-                </div>
-                
-                <div class="viz-card">
-                    <h3>|1⟩⟨1| - Projection onto |1⟩</h3>
-                    <div class="matrix-display">
-                        [0]     [0 1] = [0 0]
-                        [1]  ×         [0 1]
-                    </div>
-                    <div class="matrix-grid">
-                        <div class="matrix-cell" style="background: rgba(255,255,255,0.1);">0</div>
-                        <div class="matrix-cell" style="background: rgba(255,255,255,0.1);">0</div>
-                        <div class="matrix-cell" style="background: rgba(255,255,255,0.1);">0</div>
-                        <div class="matrix-cell" style="background: rgba(123,44,191,0.5);">1</div>
-                    </div>
-                    <p style="color: #aaa; margin-top: 10px;">Projects any state onto |1⟩</p>
-                </div>
-            </div>
-
-            <div class="visualization-grid" style="margin-top: 20px;">
-                <div class="viz-card">
-                    <h3>|0⟩⟨1| - Transition Operator</h3>
-                    <div class="matrix-display">
-                        [1]     [0 1] = [0 1]
-                        [0]  ×         [0 0]
-                    </div>
-                    <div class="matrix-grid">
-                        <div class="matrix-cell" style="background: rgba(255,255,255,0.1);">0</div>
-                        <div class="matrix-cell" style="background: rgba(255,107,107,0.5);">1</div>
-                        <div class="matrix-cell" style="background: rgba(255,255,255,0.1);">0</div>
-                        <div class="matrix-cell" style="background: rgba(255,255,255,0.1);">0</div>
-                    </div>
-                    <p style="color: #aaa; margin-top: 10px;">Maps |1⟩ → |0⟩, annihilates |0⟩</p>
-                </div>
-                
-                <div class="viz-card">
-                    <h3>|1⟩⟨0| - Transition Operator</h3>
-                    <div class="matrix-display">
-                        [0]     [1 0] = [0 0]
-                        [1]  ×         [1 0]
-                    </div>
-                    <div class="matrix-grid">
-                        <div class="matrix-cell" style="background: rgba(255,255,255,0.1);">0</div>
-                        <div class="matrix-cell" style="background: rgba(255,255,255,0.1);">0</div>
-                        <div class="matrix-cell" style="background: rgba(255,107,107,0.5);">1</div>
-                        <div class="matrix-cell" style="background: rgba(255,255,255,0.1);">0</div>
-                    </div>
-                    <p style="color: #aaa; margin-top: 10px;">Maps |0⟩ → |1⟩, annihilates |1⟩</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="section">
-            <h2>Interactive Outer Product Visualizer</h2>
-            <div class="visualization-grid">
-                <div class="viz-card">
-                    <h3>Select States</h3>
-                    <div style="margin: 20px 0;">
-                        <label style="display: block; margin: 10px 0;">|φ⟩ = </label>
-                        <select id="phiSelect" onchange="updateOuterProduct()" style="padding: 10px; font-size: 1.1em; border-radius: 5px;">
-                            <option value="0">|0⟩</option>
-                            <option value="1">|1⟩</option>
-                            <option value="+">|+⟩</option>
-                            <option value="-">|-⟩</option>
-                        </select>
-                    </div>
-                    <div style="margin: 20px 0;">
-                        <label style="display: block; margin: 10px 0;">⟨ψ| = </label>
-                        <select id="psiSelect" onchange="updateOuterProduct()" style="padding: 10px; font-size: 1.1em; border-radius: 5px;">
-                            <option value="0">⟨0|</option>
-                            <option value="1" selected>⟨1|</option>
-                            <option value="+">⟨+|</option>
-                            <option value="-">⟨-|</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div class="viz-card">
-                    <h3>Result Matrix</h3>
-                    <canvas id="matrixCanvas" width="300" height="300"></canvas>
-                    <div id="matrixValues" style="margin-top: 15px; font-family: monospace;"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="section">
-            <h2>Projection Operators</h2>
-            <p class="explanation">
-                A <strong>projection operator</strong> P = |ψ⟩⟨ψ| projects any state onto |ψ⟩. Key properties:
-                P² = P (applying twice is same as once), P† = P (Hermitian), and Tr(P) = 1.
-            </p>
+            <h2>Step-by-Step Example: Computing |0⟩⟨1|</h2>
             
-            <div class="visualization-grid">
-                <div class="viz-card">
-                    <h3>Projection Animation</h3>
-                    <canvas id="projectionCanvas" width="350" height="350"></canvas>
-                    <div style="margin-top: 15px;">
-                        <button onclick="animateProjection()">Project onto |0⟩</button>
+            <div class="step-container">
+                <div class="step-title">
+                    <span class="step-number">1</span>
+                    Write out the vectors
+                </div>
+                <div class="step-content">
+                    <div class="matrix-container">
+                        <div>
+                            <div style="color: #00d4ff; margin-bottom: 10px; font-weight: bold;">|0⟩ = column vector</div>
+                            <div class="matrix">
+                                <span class="matrix-bracket">[</span>
+                                <div class="matrix-content col-1">
+                                    <div class="matrix-cell highlight-row">1</div>
+                                    <div class="matrix-cell highlight-row">0</div>
+                                </div>
+                                <span class="matrix-bracket">]</span>
+                            </div>
+                            <div style="color: #aaa; margin-top: 10px; font-size: 0.9em;">
+                                Top = amplitude for |0⟩<br>
+                                Bottom = amplitude for |1⟩
+                            </div>
+                        </div>
+                        <div style="font-size: 2em; color: #888; padding: 0 30px;">and</div>
+                        <div>
+                            <div style="color: #7b2cbf; margin-bottom: 10px; font-weight: bold;">⟨1| = row vector</div>
+                            <div class="matrix">
+                                <span class="matrix-bracket">[</span>
+                                <div class="matrix-content col-2">
+                                    <div class="matrix-cell highlight-col">0</div>
+                                    <div class="matrix-cell highlight-col">1</div>
+                                </div>
+                                <span class="matrix-bracket">]</span>
+                            </div>
+                            <div style="color: #aaa; margin-top: 10px; font-size: 0.9em;">
+                                Left = amplitude for |0⟩<br>
+                                Right = amplitude for |1⟩
+                            </div>
+                        </div>
                     </div>
                 </div>
-                
-                <div class="viz-card">
-                    <h3>Completeness Relation</h3>
-                    <div class="equation" style="font-size: 1.3em;">
-                        |0⟩⟨0| + |1⟩⟨1| = I
+            </div>
+
+            <div class="step-container">
+                <div class="step-title">
+                    <span class="step-number">2</span>
+                    Multiply: each row element × each column element
+                </div>
+                <div class="step-content">
+                    <p style="color: #aaa; margin-bottom: 15px; text-align: center;">
+                        Matrix element [row, col] = (element from |φ⟩ at row) × (element from ⟨ψ| at col)
+                    </p>
+                    <div class="calc-grid">
+                        <div class="calc-cell">
+                            <div class="position">Position [0,0]</div>
+                            <div class="formula">
+                                <span class="phi-color">|0⟩[0]</span> × <span class="psi-color">⟨1|[0]</span>
+                            </div>
+                            <div class="formula">
+                                <span class="phi-color">1</span> × <span class="psi-color">0</span>
+                            </div>
+                            <div class="result">= 0</div>
+                        </div>
+                        <div class="calc-cell">
+                            <div class="position">Position [0,1]</div>
+                            <div class="formula">
+                                <span class="phi-color">|0⟩[0]</span> × <span class="psi-color">⟨1|[1]</span>
+                            </div>
+                            <div class="formula">
+                                <span class="phi-color">1</span> × <span class="psi-color">1</span>
+                            </div>
+                            <div class="result">= 1</div>
+                        </div>
+                        <div class="calc-cell">
+                            <div class="position">Position [1,0]</div>
+                            <div class="formula">
+                                <span class="phi-color">|0⟩[1]</span> × <span class="psi-color">⟨1|[0]</span>
+                            </div>
+                            <div class="formula">
+                                <span class="phi-color">0</span> × <span class="psi-color">0</span>
+                            </div>
+                            <div class="result">= 0</div>
+                        </div>
+                        <div class="calc-cell">
+                            <div class="position">Position [1,1]</div>
+                            <div class="formula">
+                                <span class="phi-color">|0⟩[1]</span> × <span class="psi-color">⟨1|[1]</span>
+                            </div>
+                            <div class="formula">
+                                <span class="phi-color">0</span> × <span class="psi-color">1</span>
+                            </div>
+                            <div class="result">= 0</div>
+                        </div>
                     </div>
-                    <canvas id="completenessCanvas" width="350" height="250"></canvas>
+                </div>
+            </div>
+
+            <div class="step-container">
+                <div class="step-title">
+                    <span class="step-number">3</span>
+                    Assemble the result matrix
+                </div>
+                <div class="step-content">
+                    <div class="matrix-container">
+                        <div>
+                            <div style="color: #00d4ff; margin-bottom: 10px;">|0⟩</div>
+                            <div class="matrix">
+                                <span class="matrix-bracket">[</span>
+                                <div class="matrix-content col-1">
+                                    <div class="matrix-cell highlight-row">1</div>
+                                    <div class="matrix-cell highlight-row">0</div>
+                                </div>
+                                <span class="matrix-bracket">]</span>
+                            </div>
+                        </div>
+                        <span class="operator">×</span>
+                        <div>
+                            <div style="color: #7b2cbf; margin-bottom: 10px;">⟨1|</div>
+                            <div class="matrix">
+                                <span class="matrix-bracket">[</span>
+                                <div class="matrix-content col-2">
+                                    <div class="matrix-cell highlight-col">0</div>
+                                    <div class="matrix-cell highlight-col">1</div>
+                                </div>
+                                <span class="matrix-bracket">]</span>
+                            </div>
+                        </div>
+                        <span class="equals">=</span>
+                        <div>
+                            <div style="color: #ffd700; margin-bottom: 10px;">|0⟩⟨1|</div>
+                            <div class="matrix">
+                                <span class="matrix-bracket">[</span>
+                                <div class="matrix-content col-2">
+                                    <div class="matrix-cell dim">0</div>
+                                    <div class="matrix-cell highlight-result">1</div>
+                                    <div class="matrix-cell dim">0</div>
+                                    <div class="matrix-cell dim">0</div>
+                                </div>
+                                <span class="matrix-bracket">]</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>What Does |0⟩⟨1| Actually Do?</h2>
+            <p class="explanation">
+                The matrix |0⟩⟨1| is an operator. When you apply it to a state, it checks for |1⟩ and outputs |0⟩.
+            </p>
+
+            <div class="visualization-grid">
+                <div class="viz-card">
+                    <h3>Apply |0⟩⟨1| to |1⟩</h3>
+                    <div style="margin: 20px 0; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px; text-align: left;">
+                        <div style="font-size: 1.2em; margin-bottom: 15px; text-align: center;">
+                            (|0⟩⟨1|) × |1⟩ = ?
+                        </div>
+                        <div style="color: #888; margin: 10px 0;">
+                            <strong style="color: #ffd700;">Step 1:</strong> Check overlap: ⟨1|1⟩ = <span style="color: #98c379; font-size: 1.2em;">1</span>
+                            <div style="font-size: 0.9em; margin-left: 20px;">|1⟩ perfectly matches |1⟩</div>
+                        </div>
+                        <div style="color: #888; margin: 10px 0;">
+                            <strong style="color: #ffd700;">Step 2:</strong> Output: 1 × |0⟩ = <span style="color: #00d4ff; font-size: 1.2em;">|0⟩</span>
+                        </div>
+                    </div>
+                    <div style="font-size: 1.5em; color: #00d4ff; font-weight: bold;">
+                        Result: |0⟩
+                    </div>
+                    <p style="color: #98c379; margin-top: 15px;">Transforms |1⟩ into |0⟩</p>
+                </div>
+
+                <div class="viz-card">
+                    <h3>Apply |0⟩⟨1| to |0⟩</h3>
+                    <div style="margin: 20px 0; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px; text-align: left;">
+                        <div style="font-size: 1.2em; margin-bottom: 15px; text-align: center;">
+                            (|0⟩⟨1|) × |0⟩ = ?
+                        </div>
+                        <div style="color: #888; margin: 10px 0;">
+                            <strong style="color: #ffd700;">Step 1:</strong> Check overlap: ⟨1|0⟩ = <span style="color: #e06c75; font-size: 1.2em;">0</span>
+                            <div style="font-size: 0.9em; margin-left: 20px;">|0⟩ has no overlap with |1⟩</div>
+                        </div>
+                        <div style="color: #888; margin: 10px 0;">
+                            <strong style="color: #ffd700;">Step 2:</strong> Output: 0 × |0⟩ = <span style="color: #e06c75; font-size: 1.2em;">0</span>
+                        </div>
+                    </div>
+                    <div style="font-size: 1.5em; color: #e06c75; font-weight: bold;">
+                        Result: 0 (destroyed!)
+                    </div>
+                    <p style="color: #e06c75; margin-top: 15px;">Annihilates |0⟩ completely</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>The Four Basic Outer Products</h2>
+            <div class="visualization-grid">
+                <div class="viz-card">
+                    <h3>|0⟩⟨0|</h3>
+                    <div class="matrix-container">
+                        <div class="matrix">
+                            <span class="matrix-bracket">[</span>
+                            <div class="matrix-content col-2">
+                                <div class="matrix-cell" style="background: rgba(0,212,255,0.4);">1</div>
+                                <div class="matrix-cell dim">0</div>
+                                <div class="matrix-cell dim">0</div>
+                                <div class="matrix-cell dim">0</div>
+                            </div>
+                            <span class="matrix-bracket">]</span>
+                        </div>
+                    </div>
                     <p style="color: #aaa; margin-top: 10px;">
-                        Sum of all projectors = Identity matrix
+                        <strong>Projects onto |0⟩</strong><br>
+                        Keeps |0⟩, destroys |1⟩
+                    </p>
+                </div>
+
+                <div class="viz-card">
+                    <h3>|1⟩⟨1|</h3>
+                    <div class="matrix-container">
+                        <div class="matrix">
+                            <span class="matrix-bracket">[</span>
+                            <div class="matrix-content col-2">
+                                <div class="matrix-cell dim">0</div>
+                                <div class="matrix-cell dim">0</div>
+                                <div class="matrix-cell dim">0</div>
+                                <div class="matrix-cell" style="background: rgba(123,44,191,0.4);">1</div>
+                            </div>
+                            <span class="matrix-bracket">]</span>
+                        </div>
+                    </div>
+                    <p style="color: #aaa; margin-top: 10px;">
+                        <strong>Projects onto |1⟩</strong><br>
+                        Keeps |1⟩, destroys |0⟩
+                    </p>
+                </div>
+
+                <div class="viz-card">
+                    <h3>|0⟩⟨1|</h3>
+                    <div class="matrix-container">
+                        <div class="matrix">
+                            <span class="matrix-bracket">[</span>
+                            <div class="matrix-content col-2">
+                                <div class="matrix-cell dim">0</div>
+                                <div class="matrix-cell" style="background: rgba(255,107,107,0.4);">1</div>
+                                <div class="matrix-cell dim">0</div>
+                                <div class="matrix-cell dim">0</div>
+                            </div>
+                            <span class="matrix-bracket">]</span>
+                        </div>
+                    </div>
+                    <p style="color: #aaa; margin-top: 10px;">
+                        <strong>Transition operator</strong><br>
+                        |1⟩ → |0⟩, destroys |0⟩
+                    </p>
+                </div>
+
+                <div class="viz-card">
+                    <h3>|1⟩⟨0|</h3>
+                    <div class="matrix-container">
+                        <div class="matrix">
+                            <span class="matrix-bracket">[</span>
+                            <div class="matrix-content col-2">
+                                <div class="matrix-cell dim">0</div>
+                                <div class="matrix-cell dim">0</div>
+                                <div class="matrix-cell" style="background: rgba(255,107,107,0.4);">1</div>
+                                <div class="matrix-cell dim">0</div>
+                            </div>
+                            <span class="matrix-bracket">]</span>
+                        </div>
+                    </div>
+                    <p style="color: #aaa; margin-top: 10px;">
+                        <strong>Transition operator</strong><br>
+                        |0⟩ → |1⟩, destroys |1⟩
                     </p>
                 </div>
             </div>
         </div>
 
         <div class="section">
-            <h2>Building Gates from Outer Products</h2>
-            <div class="explanation">
-                Quantum gates can be constructed as sums of outer products. For example:
-            </div>
+            <h2>Interactive Calculator</h2>
             
+            <div class="interactive-panel">
+                <div class="state-selector">
+                    <label style="color: #00d4ff;">|φ⟩ =</label>
+                    <select id="phiSelect" onchange="updateCalculation()">
+                        <option value="0">|0⟩ = [1, 0]</option>
+                        <option value="1">|1⟩ = [0, 1]</option>
+                    </select>
+                </div>
+                <div class="state-selector">
+                    <label style="color: #7b2cbf;">⟨ψ| =</label>
+                    <select id="psiSelect" onchange="updateCalculation()">
+                        <option value="0">⟨0| = [1, 0]</option>
+                        <option value="1" selected>⟨1| = [0, 1]</option>
+                    </select>
+                </div>
+                <div class="state-selector">
+                    <label style="color: #ffd700;">Apply to |x⟩ =</label>
+                    <select id="inputSelect" onchange="updateCalculation()">
+                        <option value="0">|0⟩</option>
+                        <option value="1" selected>|1⟩</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="calculationResult" class="step-container">
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Building Gates from Outer Products</h2>
+            <div class="key-insight">
+                <strong>Key Idea:</strong> Quantum gates can be written as sums of outer products!
+            </div>
+
             <div class="visualization-grid">
                 <div class="viz-card">
-                    <h3>X Gate (NOT)</h3>
+                    <h3>X Gate (NOT gate)</h3>
                     <div class="equation" style="font-size: 1.2em;">
                         X = |0⟩⟨1| + |1⟩⟨0|
                     </div>
-                    <div class="matrix-grid">
-                        <div class="matrix-cell" style="background: rgba(255,255,255,0.1);">0</div>
-                        <div class="matrix-cell" style="background: rgba(0,212,255,0.5);">1</div>
-                        <div class="matrix-cell" style="background: rgba(123,44,191,0.5);">1</div>
-                        <div class="matrix-cell" style="background: rgba(255,255,255,0.1);">0</div>
+                    <div class="matrix-container">
+                        <div class="matrix">
+                            <span class="matrix-bracket">[</span>
+                            <div class="matrix-content col-2">
+                                <div class="matrix-cell dim">0</div>
+                                <div class="matrix-cell bright">1</div>
+                                <div class="matrix-cell bright">1</div>
+                                <div class="matrix-cell dim">0</div>
+                            </div>
+                            <span class="matrix-bracket">]</span>
+                        </div>
                     </div>
-                    <p style="color: #aaa; margin-top: 10px;">Flips |0⟩↔|1⟩</p>
+                    <p style="color: #aaa; margin-top: 10px;">Swaps |0⟩ ↔ |1⟩</p>
                 </div>
-                
+
                 <div class="viz-card">
-                    <h3>Z Gate (Phase)</h3>
+                    <h3>Z Gate (Phase gate)</h3>
                     <div class="equation" style="font-size: 1.2em;">
                         Z = |0⟩⟨0| - |1⟩⟨1|
                     </div>
-                    <div class="matrix-grid">
-                        <div class="matrix-cell" style="background: rgba(0,212,255,0.5);">1</div>
-                        <div class="matrix-cell" style="background: rgba(255,255,255,0.1);">0</div>
-                        <div class="matrix-cell" style="background: rgba(255,255,255,0.1);">0</div>
-                        <div class="matrix-cell" style="background: rgba(255,107,107,0.5);">-1</div>
+                    <div class="matrix-container">
+                        <div class="matrix">
+                            <span class="matrix-bracket">[</span>
+                            <div class="matrix-content col-2">
+                                <div class="matrix-cell bright">1</div>
+                                <div class="matrix-cell dim">0</div>
+                                <div class="matrix-cell dim">0</div>
+                                <div class="matrix-cell" style="background: rgba(255,107,107,0.3);">-1</div>
+                            </div>
+                            <span class="matrix-bracket">]</span>
+                        </div>
                     </div>
                     <p style="color: #aaa; margin-top: 10px;">Adds -1 phase to |1⟩</p>
                 </div>
             </div>
         </div>
 
-        
         <div class="section">
             <h2>Notebook Code (Exact Cells)</h2>
-
             <div class="notebook-cell">
                 <div class="cell-label">Cell 14</div>
                 <pre><code class="language-python">phi = ket0
 psi = H @ ket0
 
 inner = phi.conj().T @ psi #inner product of phi and psi
-outer = ket0 @ bra1        #outer peorudt of phi and bra1</code></pre>
+outer = ket0 @ bra1        #outer product of phi and bra1</code></pre>
             </div>
             <div class="notebook-cell">
                 <div class="cell-label">Cell 15</div>
@@ -427,8 +733,7 @@ print(outer)</code></pre>
                     <div class="output-label">Output:</div>
                     <pre>[[0.707+0.j]]
 [[0.+0.j 1.+0.j]
- [0.+0.j 0.+0.j]]
-</pre>
+ [0.+0.j 0.+0.j]]</pre>
                 </div>
             </div>
         </div>
@@ -441,282 +746,76 @@ print(outer)</code></pre>
 
     <script>
         const states = {
-            '0': [[1], [0]],
-            '1': [[0], [1]],
-            '+': [[1/Math.sqrt(2)], [1/Math.sqrt(2)]],
-            '-': [[1/Math.sqrt(2)], [-1/Math.sqrt(2)]]
+            '0': { ket: [1, 0], name: '|0⟩' },
+            '1': { ket: [0, 1], name: '|1⟩' }
         };
 
-        function updateOuterProduct() {
+        function updateCalculation() {
             const phiKey = document.getElementById('phiSelect').value;
             const psiKey = document.getElementById('psiSelect').value;
-            
+            const inputKey = document.getElementById('inputSelect').value;
+
             const phi = states[phiKey];
             const psi = states[psiKey];
-            
-            // Compute outer product
+            const input = states[inputKey];
+
             const matrix = [
-                [phi[0][0] * psi[0][0], phi[0][0] * psi[1][0]],
-                [phi[1][0] * psi[0][0], phi[1][0] * psi[1][0]]
+                [phi.ket[0] * psi.ket[0], phi.ket[0] * psi.ket[1]],
+                [phi.ket[1] * psi.ket[0], phi.ket[1] * psi.ket[1]]
             ];
-            
-            drawMatrix(matrix);
-        }
 
-        function drawMatrix(matrix) {
-            const canvas = document.getElementById('matrixCanvas');
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, 300, 300);
+            const innerProduct = psi.ket[0] * input.ket[0] + psi.ket[1] * input.ket[1];
+            const output = [innerProduct * phi.ket[0], innerProduct * phi.ket[1]];
 
-            const cellSize = 100;
-            const startX = 50;
-            const startY = 50;
+            const psiName = psiKey;
+            const inputName = inputKey;
 
-            for (let i = 0; i < 2; i++) {
-                for (let j = 0; j < 2; j++) {
-                    const val = matrix[i][j];
-                    const absVal = Math.abs(val);
+            const resultDiv = document.getElementById('calculationResult');
+            resultDiv.innerHTML = `
+                <div class="step-title">
+                    <span class="step-number">!</span>
+                    Result: ${phi.name}⟨${psiName}| applied to ${input.name}
+                </div>
+                <div class="step-content">
+                    <div class="matrix-container">
+                        <div>
+                            <div style="color: #888; margin-bottom: 5px;">Matrix ${phi.name}⟨${psiName}|</div>
+                            <div class="matrix">
+                                <span class="matrix-bracket">[</span>
+                                <div class="matrix-content col-2">
+                                    <div class="matrix-cell ${matrix[0][0] > 0 ? 'highlight-result' : 'dim'}">${matrix[0][0]}</div>
+                                    <div class="matrix-cell ${matrix[0][1] > 0 ? 'highlight-result' : 'dim'}">${matrix[0][1]}</div>
+                                    <div class="matrix-cell ${matrix[1][0] > 0 ? 'highlight-result' : 'dim'}">${matrix[1][0]}</div>
+                                    <div class="matrix-cell ${matrix[1][1] > 0 ? 'highlight-result' : 'dim'}">${matrix[1][1]}</div>
+                                </div>
+                                <span class="matrix-bracket">]</span>
+                            </div>
+                        </div>
+                    </div>
                     
-                    // Color based on value
-                    let color;
-                    if (val > 0) {
-                        color = `rgba(0, 212, 255, ${absVal})`;
-                    } else if (val < 0) {
-                        color = `rgba(255, 107, 107, ${absVal})`;
-                    } else {
-                        color = 'rgba(255, 255, 255, 0.1)';
-                    }
-                    
-                    ctx.fillStyle = color;
-                    ctx.fillRect(startX + j * cellSize, startY + i * cellSize, cellSize - 5, cellSize - 5);
-                    
-                    // Value text
-                    ctx.fillStyle = '#fff';
-                    ctx.font = 'bold 20px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(val.toFixed(2), startX + j * cellSize + cellSize/2 - 2, startY + i * cellSize + cellSize/2 + 7);
-                }
-            }
-
-            // Matrix brackets
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.moveTo(startX - 10, startY - 10);
-            ctx.lineTo(startX - 20, startY - 10);
-            ctx.lineTo(startX - 20, startY + 2 * cellSize + 5);
-            ctx.lineTo(startX - 10, startY + 2 * cellSize + 5);
-            ctx.stroke();
-
-            ctx.beginPath();
-            ctx.moveTo(startX + 2 * cellSize + 5, startY - 10);
-            ctx.lineTo(startX + 2 * cellSize + 15, startY - 10);
-            ctx.lineTo(startX + 2 * cellSize + 15, startY + 2 * cellSize + 5);
-            ctx.lineTo(startX + 2 * cellSize + 5, startY + 2 * cellSize + 5);
-            ctx.stroke();
-
-            // Update text display
-            document.getElementById('matrixValues').innerHTML = 
-                `[${matrix[0][0].toFixed(3)}, ${matrix[0][1].toFixed(3)}]<br>` +
-                `[${matrix[1][0].toFixed(3)}, ${matrix[1][1].toFixed(3)}]`;
+                    <div style="margin-top: 20px; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 10px;">
+                        <h4 style="color: #ffd700; margin-bottom: 15px;">Applying to ${input.name}:</h4>
+                        <div style="margin-bottom: 10px;">
+                            <strong>Step 1:</strong> Compute overlap ⟨${psiName}|${inputName}⟩ = 
+                            <span style="color: ${innerProduct > 0 ? '#98c379' : '#e06c75'}; font-size: 1.2em;">${innerProduct}</span>
+                        </div>
+                        <div>
+                            <strong>Step 2:</strong> Output = ${innerProduct} × ${phi.name} = 
+                            <span style="color: #00d4ff; font-size: 1.2em;">[${output[0]}, ${output[1]}]</span>
+                        </div>
+                        <div style="text-align: center; margin-top: 15px; font-size: 1.2em;">
+                            ${innerProduct === 0 
+                                ? `<span style="color: #e06c75;">Result: 0 (destroyed - no overlap with |${psiName}⟩)</span>`
+                                : `<span style="color: #98c379;">Result: ${phi.name}</span>`
+                            }
+                        </div>
+                    </div>
+                </div>
+            `;
         }
 
-        let projAnimating = false;
-        function animateProjection() {
-            if (projAnimating) return;
-            projAnimating = true;
-            
-            const canvas = document.getElementById('projectionCanvas');
-            const ctx = canvas.getContext('2d');
-            const cx = 175, cy = 175, r = 120;
-            
-            let angle = Math.PI / 4; // Start at 45 degrees (superposition)
-            const targetAngle = 0; // End at |0⟩
-            
-            function animate() {
-                ctx.clearRect(0, 0, 350, 350);
-                
-                // Draw axes
-                ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(cx, cy - r - 20);
-                ctx.lineTo(cx, cy + r + 20);
-                ctx.moveTo(cx - r - 20, cy);
-                ctx.lineTo(cx + r + 20, cy);
-                ctx.stroke();
-
-                // Labels
-                ctx.fillStyle = '#00d4ff';
-                ctx.font = '16px Arial';
-                ctx.fillText('|0⟩', cx + 10, cy - r - 5);
-                ctx.fillStyle = '#7b2cbf';
-                ctx.fillText('|1⟩', cx + 10, cy + r + 15);
-
-                // Draw projection axis (|0⟩)
-                ctx.strokeStyle = 'rgba(0,212,255,0.3)';
-                ctx.lineWidth = 10;
-                ctx.beginPath();
-                ctx.moveTo(cx, cy);
-                ctx.lineTo(cx, cy - r);
-                ctx.stroke();
-
-                // Draw current state vector
-                const x = r * Math.sin(angle);
-                const y = -r * Math.cos(angle);
-                
-                ctx.strokeStyle = '#ff6b6b';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.moveTo(cx, cy);
-                ctx.lineTo(cx + x * 0.3, cy + y);
-                ctx.stroke();
-
-                ctx.fillStyle = '#ff6b6b';
-                ctx.beginPath();
-                ctx.arc(cx + x * 0.3, cy + y, 8, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Draw projection (dashed line)
-                ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-                ctx.setLineDash([5, 5]);
-                ctx.beginPath();
-                ctx.moveTo(cx + x * 0.3, cy + y);
-                ctx.lineTo(cx, cy + y);
-                ctx.stroke();
-                ctx.setLineDash([]);
-
-                // Animate
-                if (Math.abs(angle - targetAngle) > 0.01) {
-                    angle -= 0.03;
-                    requestAnimationFrame(animate);
-                } else {
-                    projAnimating = false;
-                    // Reset after delay
-                    setTimeout(() => {
-                        drawProjectionStatic();
-                    }, 2000);
-                }
-            }
-            animate();
-        }
-
-        function drawProjectionStatic() {
-            const canvas = document.getElementById('projectionCanvas');
-            const ctx = canvas.getContext('2d');
-            const cx = 175, cy = 175, r = 120;
-            
-            ctx.clearRect(0, 0, 350, 350);
-            
-            // Draw axes
-            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(cx, cy - r - 20);
-            ctx.lineTo(cx, cy + r + 20);
-            ctx.moveTo(cx - r - 20, cy);
-            ctx.lineTo(cx + r + 20, cy);
-            ctx.stroke();
-
-            // Labels
-            ctx.fillStyle = '#00d4ff';
-            ctx.font = '16px Arial';
-            ctx.fillText('|0⟩', cx + 10, cy - r - 5);
-            ctx.fillStyle = '#7b2cbf';
-            ctx.fillText('|1⟩', cx + 10, cy + r + 15);
-
-            // Draw initial state (|+⟩)
-            const angle = Math.PI / 4;
-            const x = r * Math.sin(angle);
-            const y = -r * Math.cos(angle);
-            
-            ctx.strokeStyle = '#ff6b6b';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.moveTo(cx, cy);
-            ctx.lineTo(cx + x * 0.3, cy + y);
-            ctx.stroke();
-
-            ctx.fillStyle = '#ff6b6b';
-            ctx.beginPath();
-            ctx.arc(cx + x * 0.3, cy + y, 8, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillText('|+⟩', cx + x * 0.3 + 15, cy + y);
-        }
-
-        function drawCompleteness() {
-            const canvas = document.getElementById('completenessCanvas');
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, 350, 250);
-
-            // Draw |0⟩⟨0| matrix
-            ctx.fillStyle = 'rgba(0,212,255,0.5)';
-            ctx.fillRect(30, 50, 40, 40);
-            ctx.fillStyle = 'rgba(255,255,255,0.1)';
-            ctx.fillRect(70, 50, 40, 40);
-            ctx.fillRect(30, 90, 40, 40);
-            ctx.fillRect(70, 90, 40, 40);
-
-            // Plus sign
-            ctx.fillStyle = '#fff';
-            ctx.font = 'bold 30px Arial';
-            ctx.fillText('+', 125, 90);
-
-            // Draw |1⟩⟨1| matrix
-            ctx.fillStyle = 'rgba(255,255,255,0.1)';
-            ctx.fillRect(160, 50, 40, 40);
-            ctx.fillRect(200, 50, 40, 40);
-            ctx.fillRect(160, 90, 40, 40);
-            ctx.fillStyle = 'rgba(123,44,191,0.5)';
-            ctx.fillRect(200, 90, 40, 40);
-
-            // Equals sign
-            ctx.fillStyle = '#fff';
-            ctx.fillText('=', 255, 90);
-
-            // Draw Identity matrix
-            ctx.fillStyle = 'rgba(255,107,107,0.5)';
-            ctx.fillRect(290, 50, 40, 40);
-            ctx.fillStyle = 'rgba(255,255,255,0.1)';
-            ctx.fillRect(330, 50, 40, 40);
-            ctx.fillRect(290, 90, 40, 40);
-            ctx.fillStyle = 'rgba(255,107,107,0.5)';
-            ctx.fillRect(330, 90, 40, 40);
-
-            // Values
-            ctx.fillStyle = '#fff';
-            ctx.font = '16px Arial';
-            ctx.fillText('1', 45, 77);
-            ctx.fillText('0', 85, 77);
-            ctx.fillText('0', 45, 117);
-            ctx.fillText('0', 85, 117);
-
-            ctx.fillText('0', 175, 77);
-            ctx.fillText('0', 215, 77);
-            ctx.fillText('0', 175, 117);
-            ctx.fillText('1', 215, 117);
-
-            ctx.fillText('1', 305, 77);
-            ctx.fillText('0', 345, 77);
-            ctx.fillText('0', 305, 117);
-            ctx.fillText('1', 345, 117);
-
-            // Labels
-            ctx.font = '14px Arial';
-            ctx.fillStyle = '#00d4ff';
-            ctx.fillText('|0⟩⟨0|', 50, 160);
-            ctx.fillStyle = '#7b2cbf';
-            ctx.fillText('|1⟩⟨1|', 180, 160);
-            ctx.fillStyle = '#ff6b6b';
-            ctx.fillText('I', 325, 160);
-        }
-
-        // Initialize
-        updateOuterProduct();
-        drawProjectionStatic();
-        drawCompleteness();
+        updateCalculation();
+        hljs.highlightAll();
     </script>
-
-    <script>hljs.highlightAll();</script>
 </body>
 </html>
