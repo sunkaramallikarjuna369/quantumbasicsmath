@@ -22,7 +22,8 @@ This project provides comprehensive, interactive visualizations that explain qua
    - Or right-click → "Open with" → Choose your browser
 
 3. **Start with the basics:**
-   - Begin with `01_quantum_states/01_basis_states.html`
+   - **Full Notebook View:** Open `00_notebook.html` to see all 38 notebook cells with exact code and outputs
+   - **Interactive Visualizations:** Begin with `01_quantum_states/01_basis_states.html` for interactive learning
    - Follow the navigation links at the bottom of each page
 
 ### Option 2: Direct Browser Access
@@ -33,6 +34,9 @@ If the repository is hosted on GitHub Pages, you can access the visualizations d
 ## Folder Structure
 
 The visualizations are organized in sequential folders, designed to be followed in order:
+
+### 00_notebook.html (Root File)
+Complete Jupyter notebook rendered as HTML with all 38 cells, exact code, and outputs. Uses highlight.js for proper Python syntax highlighting.
 
 ### 01_quantum_states/
 Foundation of quantum computing - understanding qubits and their states.

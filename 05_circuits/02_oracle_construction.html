@@ -121,7 +121,57 @@
         }
         .constant { background: rgba(0,255,0,0.2); border: 2px solid #0f0; }
         .balanced { background: rgba(255,107,107,0.2); border: 2px solid #ff6b6b; }
-    </style>
+    
+        .notebook-cell {
+            background: #282c34;
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .cell-label {
+            background: rgba(0,212,255,0.2);
+            padding: 8px 15px;
+            font-size: 0.85em;
+            color: #00d4ff;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .notebook-cell pre {
+            margin: 0;
+            padding: 15px;
+            background: #282c34;
+            overflow-x: auto;
+        }
+        .notebook-cell code {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .cell-output {
+            background: rgba(0,0,0,0.4);
+            padding: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .cell-output pre {
+            background: transparent;
+            color: #98c379;
+            white-space: pre-wrap;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            margin: 0;
+            padding: 0;
+        }
+        .output-label {
+            color: #e06c75;
+            font-size: 0.8em;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+</style>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -245,64 +295,34 @@
             </div>
         </div>
 
+        
         <div class="section">
-            <h2>Python Implementation</h2>
-            <div class="code-block">
-<span class="keyword">import</span> numpy <span class="keyword">as</span> np
+            <h2>Notebook Code (Exact Cells)</h2>
 
-<span class="keyword">def</span> <span class="function">oracle_Uf</span>(f, n):
-    <span class="string">"""
-    Construct oracle matrix for function f on n input qubits.
-    f: function that takes integer x and returns 0 or 1
-    n: number of input qubits
-    Returns: 2^(n+1) x 2^(n+1) unitary matrix
-    """</span>
-    N = <span class="number">2</span>**(n+<span class="number">1</span>)  <span class="comment"># Total dimension (n input + 1 ancilla)</span>
-    Uf = np.zeros((N, N), dtype=<span class="keyword">complex</span>)
-    
-    <span class="keyword">for</span> x <span class="keyword">in</span> <span class="function">range</span>(<span class="number">2</span>**n):  <span class="comment"># For each input state</span>
-        <span class="keyword">for</span> y <span class="keyword">in</span> [<span class="number">0</span>, <span class="number">1</span>]:  <span class="comment"># For each ancilla state</span>
-            <span class="comment"># Input index: |x⟩|y⟩</span>
-            input_idx = (x << <span class="number">1</span>) | y
-            <span class="comment"># Output index: |x⟩|y⊕f(x)⟩</span>
-            output_idx = (x << <span class="number">1</span>) | (y ^ f(x))
-            Uf[output_idx, input_idx] = <span class="number">1</span>
-    
-    <span class="keyword">return</span> Uf
+            <div class="notebook-cell">
+                <div class="cell-label">Cell 34</div>
+                <pre><code class="language-python">def oracle_Uf(n, f):
+    &quot;&quot;&quot;
+    Build the oracle matrix Uf for n input qubits + 1 ancilla qubit.
 
-<span class="comment"># Define different functions</span>
-f_constant_0 = <span class="keyword">lambda</span> x: <span class="number">0</span>  <span class="comment"># Always 0</span>
-f_constant_1 = <span class="keyword">lambda</span> x: <span class="number">1</span>  <span class="comment"># Always 1</span>
-f_balanced_x = <span class="keyword">lambda</span> x: x & <span class="number">1</span>  <span class="comment"># f(x) = x (last bit)</span>
-f_balanced_notx = <span class="keyword">lambda</span> x: <span class="number">1</span> - (x & <span class="number">1</span>)  <span class="comment"># f(x) = NOT x</span>
+    Basis ordering:
+      |x&gt;|y&gt;  → index = (x &lt;&lt; 1) | y
+    &quot;&quot;&quot;
+    dim = 2 ** (n + 1)
+    U = np.zeros((dim, dim), dtype=complex)
 
-<span class="comment"># Build oracles for 1-qubit input</span>
-Uf_0 = oracle_Uf(f_constant_0, <span class="number">1</span>)
-Uf_1 = oracle_Uf(f_constant_1, <span class="number">1</span>)
-Uf_x = oracle_Uf(f_balanced_x, <span class="number">1</span>)
+    print(&quot;
+[Oracle Construction]&quot;)
+    for x in range(2**n):
+        fx = int(f(x)) &amp; 1
+        print(f&quot;  f({format(x, f&#x27;0{n}b&#x27;)}) = {fx}&quot;)
+        for y in (0, 1):
+            in_idx  = (x &lt;&lt; 1) | y
+            out_idx = (x &lt;&lt; 1) | (y ^ fx)
+            U[out_idx, in_idx] = 1.0
 
-<span class="function">print</span>(<span class="string">"Oracle for f(x)=0:\n"</span>, Uf_0)
-<span class="comment"># Identity matrix</span>
-
-<span class="function">print</span>(<span class="string">"Oracle for f(x)=x (CNOT):\n"</span>, Uf_x)
-<span class="comment"># CNOT matrix</span>
-
-<span class="comment"># Verify phase kickback</span>
-ket_minus = (<span class="number">1</span>/np.sqrt(<span class="number">2</span>)) * np.array([[<span class="number">1</span>], [-<span class="number">1</span>]], dtype=<span class="keyword">complex</span>)
-ket0 = np.array([[<span class="number">1</span>], [<span class="number">0</span>]], dtype=<span class="keyword">complex</span>)
-ket1 = np.array([[<span class="number">0</span>], [<span class="number">1</span>]], dtype=<span class="keyword">complex</span>)
-
-<span class="comment"># |0⟩|-⟩ through oracle with f(x)=x</span>
-state = np.kron(ket0, ket_minus)
-result = Uf_x @ state
-<span class="function">print</span>(<span class="string">"Uf|0⟩|-⟩ ="</span>, result.flatten())
-<span class="comment"># Output: [0.707 -0.707 0 0] = |0⟩|-⟩ (no phase change, f(0)=0)</span>
-
-<span class="comment"># |1⟩|-⟩ through oracle with f(x)=x</span>
-state = np.kron(ket1, ket_minus)
-result = Uf_x @ state
-<span class="function">print</span>(<span class="string">"Uf|1⟩|-⟩ ="</span>, result.flatten())
-<span class="comment"># Output: [0 0 -0.707 0.707] = -|1⟩|-⟩ (phase flip! f(1)=1)</span>
+    return U
+</code></pre>
             </div>
         </div>
 
@@ -702,5 +722,7 @@ result = Uf_x @ state
             [0,0,1,0]
         ]);
     </script>
+
+    <script>hljs.highlightAll();</script>
 </body>
 </html>

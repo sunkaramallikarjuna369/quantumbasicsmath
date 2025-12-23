@@ -128,7 +128,57 @@
             background: rgba(255,255,255,0.05);
             border-radius: 10px;
         }
-    </style>
+    
+        .notebook-cell {
+            background: #282c34;
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .cell-label {
+            background: rgba(0,212,255,0.2);
+            padding: 8px 15px;
+            font-size: 0.85em;
+            color: #00d4ff;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .notebook-cell pre {
+            margin: 0;
+            padding: 15px;
+            background: #282c34;
+            overflow-x: auto;
+        }
+        .notebook-cell code {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .cell-output {
+            background: rgba(0,0,0,0.4);
+            padding: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .cell-output pre {
+            background: transparent;
+            color: #98c379;
+            white-space: pre-wrap;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            margin: 0;
+            padding: 0;
+        }
+        .output-label {
+            color: #e06c75;
+            font-size: 0.8em;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+</style>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -253,44 +303,55 @@
             </div>
         </div>
 
+        
         <div class="section">
-            <h2>Python Implementation</h2>
-            <div class="code-block">
-<span class="keyword">import</span> numpy <span class="keyword">as</span> np
+            <h2>Notebook Code (Exact Cells)</h2>
 
-<span class="comment"># Define Pauli gates</span>
-I = np.eye(<span class="number">2</span>, dtype=<span class="keyword">complex</span>)
+            <div class="notebook-cell">
+                <div class="cell-label">Cell 10</div>
+                <pre><code class="language-python">I = np.eye(2, dtype=complex)
 
-X = np.array([[<span class="number">0</span>, <span class="number">1</span>],
-              [<span class="number">1</span>, <span class="number">0</span>]], dtype=<span class="keyword">complex</span>)
+X = np.array([[0, 1],
+              [1, 0]], dtype=complex)
 
-Y = np.array([[<span class="number">0</span>, -<span class="number">1j</span>],
-              [<span class="number">1j</span>,  <span class="number">0</span>]], dtype=<span class="keyword">complex</span>)
+Y = np.array([[0, -1j],
+              [1j,  0]], dtype=complex)
 
-Z = np.array([[<span class="number">1</span>,  <span class="number">0</span>],
-              [<span class="number">0</span>, -<span class="number">1</span>]], dtype=<span class="keyword">complex</span>)
+Z = np.array([[1,  0],
+              [0, -1]], dtype=complex)
 
-<span class="comment"># Define basis states</span>
-ket0 = np.array([[<span class="number">1</span>], [<span class="number">0</span>]], dtype=<span class="keyword">complex</span>)
-ket1 = np.array([[<span class="number">0</span>], [<span class="number">1</span>]], dtype=<span class="keyword">complex</span>)
+H = (1/np.sqrt(2)) * np.array([[1,  1],
+                               [1, -1]], dtype=complex)
 
-<span class="comment"># Apply X gate (NOT)</span>
-<span class="function">print</span>(<span class="string">"X|0⟩ ="</span>, (X @ ket0).flatten())  <span class="comment"># [0 1] = |1⟩</span>
-<span class="function">print</span>(<span class="string">"X|1⟩ ="</span>, (X @ ket1).flatten())  <span class="comment"># [1 0] = |0⟩</span>
-
-<span class="comment"># Apply Y gate</span>
-<span class="function">print</span>(<span class="string">"Y|0⟩ ="</span>, (Y @ ket0).flatten())  <span class="comment"># [0 1j] = i|1⟩</span>
-<span class="function">print</span>(<span class="string">"Y|1⟩ ="</span>, (Y @ ket1).flatten())  <span class="comment"># [-1j 0] = -i|0⟩</span>
-
-<span class="comment"># Apply Z gate</span>
-<span class="function">print</span>(<span class="string">"Z|0⟩ ="</span>, (Z @ ket0).flatten())  <span class="comment"># [1 0] = |0⟩</span>
-<span class="function">print</span>(<span class="string">"Z|1⟩ ="</span>, (Z @ ket1).flatten())  <span class="comment"># [0 -1] = -|1⟩</span>
-
-<span class="comment"># Verify X² = I</span>
-<span class="function">print</span>(<span class="string">"X² = I?"</span>, np.allclose(X @ X, I))  <span class="comment"># True</span>
-
-<span class="comment"># Verify XY = iZ</span>
-<span class="function">print</span>(<span class="string">"XY = iZ?"</span>, np.allclose(X @ Y, <span class="number">1j</span> * Z))  <span class="comment"># True</span>
+print(I)
+print(&quot;=&quot;*20)
+print(X)
+print(&quot;=&quot;*20)
+print(Y)
+print(&quot;=&quot;*20)
+print(Z)
+print(&quot;=&quot;*20)
+print(H)
+print(&quot;=&quot;*20)</code></pre>
+                <div class="cell-output">
+                    <div class="output-label">Output:</div>
+                    <pre>[[1.+0.j 0.+0.j]
+ [0.+0.j 1.+0.j]]
+====================
+[[0.+0.j 1.+0.j]
+ [1.+0.j 0.+0.j]]
+====================
+[[ 0.+0.j -0.-1.j]
+ [ 0.+1.j  0.+0.j]]
+====================
+[[ 1.+0.j  0.+0.j]
+ [ 0.+0.j -1.+0.j]]
+====================
+[[ 0.707+0.j  0.707+0.j]
+ [ 0.707+0.j -0.707+0.j]]
+====================
+</pre>
+                </div>
             </div>
         </div>
 
@@ -628,5 +689,7 @@ ket1 = np.array([[<span class="number">0</span>], [<span class="number">1</span>
         drawMainBloch();
         drawProperties();
     </script>
+
+    <script>hljs.highlightAll();</script>
 </body>
 </html>

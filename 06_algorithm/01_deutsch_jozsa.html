@@ -133,7 +133,57 @@
             margin: 20px 0;
             text-align: center;
         }
-    </style>
+    
+        .notebook-cell {
+            background: #282c34;
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .cell-label {
+            background: rgba(0,212,255,0.2);
+            padding: 8px 15px;
+            font-size: 0.85em;
+            color: #00d4ff;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .notebook-cell pre {
+            margin: 0;
+            padding: 15px;
+            background: #282c34;
+            overflow-x: auto;
+        }
+        .notebook-cell code {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .cell-output {
+            background: rgba(0,0,0,0.4);
+            padding: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .cell-output pre {
+            background: transparent;
+            color: #98c379;
+            white-space: pre-wrap;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            margin: 0;
+            padding: 0;
+        }
+        .output-label {
+            color: #e06c75;
+            font-size: 0.8em;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+</style>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -264,61 +314,202 @@
             </div>
         </div>
 
+        
         <div class="section">
-            <h2>Python Implementation</h2>
-            <div class="code-block">
-<span class="keyword">import</span> numpy <span class="keyword">as</span> np
+            <h2>Notebook Code (Exact Cells)</h2>
 
-<span class="keyword">def</span> <span class="function">deutsch_jozsa</span>(f, n):
-    <span class="string">"""
-    Deutsch-Jozsa algorithm for n-qubit input.
-    f: function that takes integer x (0 to 2^n-1) and returns 0 or 1
-    n: number of input qubits
-    Returns: "CONSTANT" or "BALANCED"
-    """</span>
-    
-    <span class="comment"># Step 1: Initialize |0...0⟩|1⟩</span>
-    N = <span class="number">2</span>**(n+<span class="number">1</span>)
-    state = np.zeros(N, dtype=<span class="keyword">complex</span>)
-    state[<span class="number">1</span>] = <span class="number">1</span>  <span class="comment"># |0...0⟩|1⟩</span>
-    
-    <span class="comment"># Step 2: Apply H to all qubits</span>
-    H = (<span class="number">1</span>/np.sqrt(<span class="number">2</span>)) * np.array([[<span class="number">1</span>, <span class="number">1</span>], [<span class="number">1</span>, -<span class="number">1</span>]])
-    H_all = H
-    <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="function">range</span>(n):
-        H_all = np.kron(H, H_all)
-    state = H_all @ state
-    
-    <span class="comment"># Step 3: Apply oracle Uf</span>
-    Uf = np.zeros((N, N), dtype=<span class="keyword">complex</span>)
-    <span class="keyword">for</span> x <span class="keyword">in</span> <span class="function">range</span>(<span class="number">2</span>**n):
-        <span class="keyword">for</span> y <span class="keyword">in</span> [<span class="number">0</span>, <span class="number">1</span>]:
-            input_idx = (x << <span class="number">1</span>) | y
-            output_idx = (x << <span class="number">1</span>) | (y ^ f(x))
-            Uf[output_idx, input_idx] = <span class="number">1</span>
-    state = Uf @ state
-    
-    <span class="comment"># Step 4: Apply H to input qubits only (H⊗n ⊗ I)</span>
-    H_n = H
-    <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="function">range</span>(n-<span class="number">1</span>):
-        H_n = np.kron(H, H_n)
-    H_input = np.kron(H_n, np.eye(<span class="number">2</span>))
+            <div class="notebook-cell">
+                <div class="cell-label">Cell 35</div>
+                <pre><code class="language-python">def deutsch_jozsa(n, f):
+    &quot;&quot;&quot;
+    Run Deutsch–Jozsa algorithm for n input qubits.
+    Prints intermediate states for learning.
+    &quot;&quot;&quot;
+
+    print(&quot;
+&quot; + &quot;=&quot; * 65)
+    print(f&quot;Running Deutsch–Jozsa for n = {n}&quot;)
+    print(&quot;=&quot; * 65)
+
+    dim = 2 ** (n + 1)
+
+    # ---------------------------------------------------
+    # Step 1: Initialize |0^n&gt;|1&gt;
+    # ---------------------------------------------------
+    state = np.zeros(dim, dtype=complex)
+    state[1] = 1.0  # |x=0&gt;|y=1&gt;
+
+    print(&quot;
+Step 1: Initial state |0...0&gt;|1&gt;&quot;)
+    print(state)
+
+    # ---------------------------------------------------
+    # Step 2: Apply H on all qubits
+    # Result: |+...+&gt;|-&gt;
+    # ---------------------------------------------------
+    print(&quot;
+Step 2: Apply H^{⊗(n+1)}&quot;)
+    state = H_n(n + 1) @ state
+    print(&quot;State after Hadamards:&quot;)
+    print(state)
+
+    # ---------------------------------------------------
+    # Step 3: Apply oracle U_f
+    # Phase kickback occurs here
+    # ---------------------------------------------------
+    print(&quot;
+Step 3: Apply oracle U_f&quot;)
+    U = oracle_Uf(n, f)
+    state = U @ state
+    print(&quot;State after oracle:&quot;)
+    print(state)
+
+    # ---------------------------------------------------
+    # Step 4: Apply H^{⊗n} on input register only
+    # ---------------------------------------------------
+    print(&quot;
+Step 4: Apply H^{⊗n} on input qubits&quot;)
+    H_input = kron_all([H]*n + [I])
     state = H_input @ state
-    
-    <span class="comment"># Step 5: Measure - check probability of |0...0⟩ on input qubits</span>
-    prob_all_zeros = np.abs(state[<span class="number">0</span>])**<span class="number">2</span> + np.abs(state[<span class="number">1</span>])**<span class="number">2</span>
-    
-    <span class="keyword">if</span> prob_all_zeros > <span class="number">0.99</span>:
-        <span class="keyword">return</span> <span class="string">"CONSTANT"</span>
-    <span class="keyword">else</span>:
-        <span class="keyword">return</span> <span class="string">"BALANCED"</span>
+    print(&quot;Final state:&quot;)
+    print(state)
 
-<span class="comment"># Test with different functions</span>
-f_constant = <span class="keyword">lambda</span> x: <span class="number">0</span>
-f_balanced = <span class="keyword">lambda</span> x: x & <span class="number">1</span>
+    # ---------------------------------------------------
+    # Step 5: Measure input register probabilities
+    # ---------------------------------------------------
+    print(&quot;
+Step 5: Measure input register (ignore ancilla)&quot;)
+    probs = {}
+    for x in range(2**n):
+        amp0 = state[(x &lt;&lt; 1) | 0]
+        amp1 = state[(x &lt;&lt; 1) | 1]
+        p = abs(amp0)**2 + abs(amp1)**2
+        if p &gt; 1e-10:
+            probs[format(x, f&quot;0{n}b&quot;)] = p
 
-<span class="function">print</span>(deutsch_jozsa(f_constant, <span class="number">3</span>))  <span class="comment"># Output: CONSTANT</span>
-<span class="function">print</span>(deutsch_jozsa(f_balanced, <span class="number">3</span>))  <span class="comment"># Output: BALANCED</span>
+    for k, v in probs.items():
+        print(f&quot;  P(|{k}&gt;) = {v:.6f}&quot;)
+
+    # ---------------------------------------------------
+    # Step 6: Deutsch–Jozsa decision
+    # ---------------------------------------------------
+    if probs.get(&quot;0&quot;*n, 0.0) &gt; 1 - 1e-9:
+        decision = &quot;CONSTANT&quot;
+    else:
+        decision = &quot;BALANCED&quot;
+
+    print(&quot;
+Deutsch–Jozsa Decision:&quot;, decision)
+    return probs, decision
+</code></pre>
+            </div>
+            <div class="notebook-cell">
+                <div class="cell-label">Cell 36</div>
+                <pre><code class="language-python">def f_constant(x):
+    return 0
+
+deutsch_jozsa(n=3, f=f_constant)
+</code></pre>
+                <div class="cell-output">
+                    <div class="output-label">Output:</div>
+                    <pre>
+=================================================================
+Running Deutsch–Jozsa for n = 3
+=================================================================
+
+Step 1: Initial state |0...0&gt;|1&gt;
+[0.+0.j 1.+0.j 0.+0.j 0.+0.j 0.+0.j 0.+0.j 0.+0.j 0.+0.j 0.+0.j 0.+0.j
+ 0.+0.j 0.+0.j 0.+0.j 0.+0.j 0.+0.j 0.+0.j]
+
+Step 2: Apply H^{⊗(n+1)}
+State after Hadamards:
+[ 0.25+0.j -0.25+0.j  0.25+0.j -0.25+0.j  0.25+0.j -0.25+0.j  0.25+0.j
+ -0.25+0.j  0.25+0.j -0.25+0.j  0.25+0.j -0.25+0.j  0.25+0.j -0.25+0.j
+  0.25+0.j -0.25+0.j]
+
+Step 3: Apply oracle U_f
+
+[Oracle Construction]
+  f(000) = 0
+  f(001) = 0
+  f(010) = 0
+  f(011) = 0
+  f(100) = 0
+  f(101) = 0
+  f(110) = 0
+  f(111) = 0
+State after oracle:
+[ 0.25+0.j -0.25+0.j  0.25+0.j -0.25+0.j  0.25+0.j -0.25+0.j  0.25+0.j
+ -0.25+0.j  0.25+0.j -0.25+0.j  0.25+0.j -0.25+0.j  0.25+0.j -0.25+0.j
+  0.25+0.j -0.25+0.j]
+
+Step 4: Apply H^{⊗n} on input qubits
+Final state:
+[ 0.707+0.j -0.707+0.j  0.   +0.j -0.   +0.j  0.   +0.j -0.   +0.j
+ -0.   +0.j  0.   +0.j  0.   +0.j -0.   +0.j -0.   +0.j  0.   +0.j
+ -0.   +0.j  0.   +0.j  0.   +0.j -0.   +0.j]
+
+Step 5: Measure input register (ignore ancilla)
+  P(|000&gt;) = 1.000000
+
+Deutsch–Jozsa Decision: CONSTANT
+
+({&#x27;000&#x27;: np.float64(0.9999999999999989)}, &#x27;CONSTANT&#x27;)</pre>
+                </div>
+            </div>
+            <div class="notebook-cell">
+                <div class="cell-label">Cell 37</div>
+                <pre><code class="language-python">def f_balanced(x):
+    return x &amp; 1
+
+deutsch_jozsa(n=3, f=f_balanced)
+</code></pre>
+                <div class="cell-output">
+                    <div class="output-label">Output:</div>
+                    <pre>
+=================================================================
+Running Deutsch–Jozsa for n = 3
+=================================================================
+
+Step 1: Initial state |0...0&gt;|1&gt;
+[0.+0.j 1.+0.j 0.+0.j 0.+0.j 0.+0.j 0.+0.j 0.+0.j 0.+0.j 0.+0.j 0.+0.j
+ 0.+0.j 0.+0.j 0.+0.j 0.+0.j 0.+0.j 0.+0.j]
+
+Step 2: Apply H^{⊗(n+1)}
+State after Hadamards:
+[ 0.25+0.j -0.25+0.j  0.25+0.j -0.25+0.j  0.25+0.j -0.25+0.j  0.25+0.j
+ -0.25+0.j  0.25+0.j -0.25+0.j  0.25+0.j -0.25+0.j  0.25+0.j -0.25+0.j
+  0.25+0.j -0.25+0.j]
+
+Step 3: Apply oracle U_f
+
+[Oracle Construction]
+  f(000) = 0
+  f(001) = 1
+  f(010) = 0
+  f(011) = 1
+  f(100) = 0
+  f(101) = 1
+  f(110) = 0
+  f(111) = 1
+State after oracle:
+[ 0.25+0.j -0.25+0.j -0.25+0.j  0.25+0.j  0.25+0.j -0.25+0.j -0.25+0.j
+  0.25+0.j  0.25+0.j -0.25+0.j -0.25+0.j  0.25+0.j  0.25+0.j -0.25+0.j
+ -0.25+0.j  0.25+0.j]
+
+Step 4: Apply H^{⊗n} on input qubits
+Final state:
+[ 0.   +0.j -0.   +0.j  0.707+0.j -0.707+0.j -0.   +0.j  0.   +0.j
+  0.   +0.j -0.   +0.j -0.   +0.j  0.   +0.j  0.   +0.j -0.   +0.j
+  0.   +0.j -0.   +0.j -0.   +0.j  0.   +0.j]
+
+Step 5: Measure input register (ignore ancilla)
+  P(|001&gt;) = 1.000000
+
+Deutsch–Jozsa Decision: BALANCED
+
+({&#x27;001&#x27;: np.float64(0.9999999999999989)}, &#x27;BALANCED&#x27;)</pre>
+                </div>
             </div>
         </div>
 
@@ -572,5 +763,7 @@ f_balanced = <span class="keyword">lambda</span> x: x & <span class="number">1</
         runAlgorithm('constant0');
         showStep(0);
     </script>
+
+    <script>hljs.highlightAll();</script>
 </body>
 </html>

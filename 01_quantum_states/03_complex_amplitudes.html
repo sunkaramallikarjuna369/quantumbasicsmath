@@ -176,7 +176,57 @@
             border-radius: 10px;
             margin: 10px 0;
         }
-    </style>
+    
+        .notebook-cell {
+            background: #282c34;
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .cell-label {
+            background: rgba(0,212,255,0.2);
+            padding: 8px 15px;
+            font-size: 0.85em;
+            color: #00d4ff;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .notebook-cell pre {
+            margin: 0;
+            padding: 15px;
+            background: #282c34;
+            overflow-x: auto;
+        }
+        .notebook-cell code {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .cell-output {
+            background: rgba(0,0,0,0.4);
+            padding: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .cell-output pre {
+            background: transparent;
+            color: #98c379;
+            white-space: pre-wrap;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            margin: 0;
+            padding: 0;
+        }
+        .output-label {
+            color: #e06c75;
+            font-size: 0.8em;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+</style>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -324,42 +374,25 @@
             </div>
         </div>
 
+        
         <div class="section">
-            <h2>Python Implementation</h2>
-            <div class="code-block">
-<span class="keyword">import</span> numpy <span class="keyword">as</span> np
+            <h2>Notebook Code (Exact Cells)</h2>
 
-<span class="comment"># Define complex numbers</span>
-a = <span class="number">1</span> + <span class="number">2j</span>  <span class="comment"># Python uses 'j' for imaginary unit</span>
-b = <span class="number">3</span> - <span class="number">1j</span>
+            <div class="notebook-cell">
+                <div class="cell-label">Cell 9</div>
+                <pre><code class="language-python">a = 1 + 2j
+b = 3 - 1j
 
-<span class="comment"># Basic operations</span>
-<span class="function">print</span>(<span class="string">"Addition:"</span>, a + b)      <span class="comment"># Output: (4+1j)</span>
-<span class="function">print</span>(<span class="string">"Multiplication:"</span>, a * b) <span class="comment"># Output: (5+5j)</span>
-
-<span class="comment"># Complex conjugate</span>
-<span class="function">print</span>(<span class="string">"Conjugate of a:"</span>, np.conj(a))  <span class="comment"># Output: (1-2j)</span>
-
-<span class="comment"># Magnitude squared (probability)</span>
-<span class="function">print</span>(<span class="string">"|a|²:"</span>, np.abs(a)**<span class="number">2</span>)  <span class="comment"># Output: 5.0</span>
-
-<span class="comment"># Polar form</span>
-r = np.abs(a)                    <span class="comment"># Magnitude: √5 ≈ 2.236</span>
-theta = np.angle(a)              <span class="comment"># Phase: arctan(2/1) ≈ 1.107 rad</span>
-<span class="function">print</span>(f<span class="string">"Polar: r={r:.3f}, θ={theta:.3f} rad"</span>)
-
-<span class="comment"># Quantum state with complex amplitude</span>
-ket0 = np.array([[<span class="number">1</span>], [<span class="number">0</span>]], dtype=<span class="string">complex</span>)
-ket1 = np.array([[<span class="number">0</span>], [<span class="number">1</span>]], dtype=<span class="string">complex</span>)
-
-<span class="comment"># State with complex phase: |ψ⟩ = (|0⟩ + i|1⟩)/√2</span>
-psi = (<span class="number">1</span>/np.sqrt(<span class="number">2</span>)) * (ket0 + <span class="number">1j</span>*ket1)
-<span class="function">print</span>(<span class="string">"State with phase:"</span>, psi.flatten())
-<span class="comment"># Output: [0.707+0.j    0.+0.707j]</span>
-
-<span class="comment"># Probabilities are still 50-50!</span>
-<span class="function">print</span>(<span class="string">"P(0):"</span>, np.abs(psi[<span class="number">0</span>])**<span class="number">2</span>)  <span class="comment"># Output: 0.5</span>
-<span class="function">print</span>(<span class="string">"P(1):"</span>, np.abs(psi[<span class="number">1</span>])**<span class="number">2</span>)  <span class="comment"># Output: 0.5</span>
+print(a + b)
+print(a * b)
+print(np.conj(a))   # complex conjugate</code></pre>
+                <div class="cell-output">
+                    <div class="output-label">Output:</div>
+                    <pre>(4+1j)
+(5+5j)
+(1-2j)
+</pre>
+                </div>
             </div>
         </div>
 
@@ -884,5 +917,7 @@ psi = (<span class="number">1</span>/np.sqrt(<span class="number">2</span>)) * (
         drawPhase();
         drawInterference();
     </script>
+
+    <script>hljs.highlightAll();</script>
 </body>
 </html>

@@ -114,7 +114,57 @@
             text-align: center;
             min-width: 150px;
         }
-    </style>
+    
+        .notebook-cell {
+            background: #282c34;
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .cell-label {
+            background: rgba(0,212,255,0.2);
+            padding: 8px 15px;
+            font-size: 0.85em;
+            color: #00d4ff;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .notebook-cell pre {
+            margin: 0;
+            padding: 15px;
+            background: #282c34;
+            overflow-x: auto;
+        }
+        .notebook-cell code {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .cell-output {
+            background: rgba(0,0,0,0.4);
+            padding: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .cell-output pre {
+            background: transparent;
+            color: #98c379;
+            white-space: pre-wrap;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            margin: 0;
+            padding: 0;
+        }
+        .output-label {
+            color: #e06c75;
+            font-size: 0.8em;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+</style>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -241,42 +291,13 @@
             </div>
         </div>
 
+        
         <div class="section">
-            <h2>Python Implementation</h2>
-            <div class="code-block">
-<span class="keyword">import</span> numpy <span class="keyword">as</span> np
+            <h2>Notebook Code (Exact Cells)</h2>
 
-<span class="comment"># Define Pauli-Z gate</span>
-Z = np.array([[<span class="number">1</span>, <span class="number">0</span>], [<span class="number">0</span>, -<span class="number">1</span>]], dtype=<span class="keyword">complex</span>)
-
-<span class="comment"># Compute eigenvalues and eigenvectors</span>
-eigenvalues, eigenvectors = np.linalg.eig(Z)
-
-<span class="function">print</span>(<span class="string">"Z eigenvalues:"</span>, eigenvalues)
-<span class="comment"># Output: [ 1. -1.]</span>
-
-<span class="function">print</span>(<span class="string">"Z eigenvectors:\n"</span>, eigenvectors)
-<span class="comment"># Output: [[1. 0.]   (columns are eigenvectors)
-#          [0. 1.]]</span>
-
-<span class="comment"># Verify: Z|0⟩ = (+1)|0⟩</span>
-ket0 = np.array([[<span class="number">1</span>], [<span class="number">0</span>]], dtype=<span class="keyword">complex</span>)
-result = Z @ ket0
-<span class="function">print</span>(<span class="string">"Z|0⟩ ="</span>, result.flatten())  <span class="comment"># [1 0] = |0⟩</span>
-
-<span class="comment"># Verify: Z|1⟩ = (-1)|1⟩</span>
-ket1 = np.array([[<span class="number">0</span>], [<span class="number">1</span>]], dtype=<span class="keyword">complex</span>)
-result = Z @ ket1
-<span class="function">print</span>(<span class="string">"Z|1⟩ ="</span>, result.flatten())  <span class="comment"># [0 -1] = -|1⟩</span>
-
-<span class="comment"># Eigenvalues of X gate</span>
-X = np.array([[<span class="number">0</span>, <span class="number">1</span>], [<span class="number">1</span>, <span class="number">0</span>]], dtype=<span class="keyword">complex</span>)
-eigenvalues_X, eigenvectors_X = np.linalg.eig(X)
-<span class="function">print</span>(<span class="string">"X eigenvalues:"</span>, eigenvalues_X)
-<span class="comment"># Output: [ 1. -1.]</span>
-<span class="function">print</span>(<span class="string">"X eigenvectors:\n"</span>, eigenvectors_X)
-<span class="comment"># Output: [[0.707  0.707]   = |+⟩ and |-⟩
-#          [0.707 -0.707]]</span>
+            <div class="notebook-cell">
+                <div class="cell-label">Cell 21</div>
+                <pre><code class="language-python">vals, vecs = np.linalg.eig(Z)</code></pre>
             </div>
         </div>
 
@@ -543,5 +564,7 @@ eigenvalues_X, eigenvectors_X = np.linalg.eig(X)
         drawHEigen();
         showEigen('Z');
     </script>
+
+    <script>hljs.highlightAll();</script>
 </body>
 </html>

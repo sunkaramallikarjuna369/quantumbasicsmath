@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deutsch-Jozsa Algorithm - Complete Notebook</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        .container { max-width: 1000px; margin: 0 auto; }
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle { text-align: center; color: #888; margin-bottom: 30px; font-size: 1.2em; }
+        .cell {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .cell-header {
+            background: rgba(0,212,255,0.1);
+            padding: 8px 15px;
+            font-size: 0.9em;
+            color: #00d4ff;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .cell-header.markdown-header { background: rgba(123,44,191,0.2); color: #7b2cbf; }
+        .cell-content { padding: 0; }
+        .cell-content pre {
+            margin: 0;
+            padding: 15px;
+            background: #282c34;
+            overflow-x: auto;
+        }
+        .cell-content code {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .cell-output {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            color: #aaa;
+        }
+        .cell-output-label {
+            color: #ff6b6b;
+            font-size: 0.8em;
+            margin-bottom: 5px;
+        }
+        .markdown-cell {
+            padding: 20px;
+            font-size: 1.3em;
+            color: #ffd93d;
+            font-weight: bold;
+        }
+        .nav-buttons { display: flex; justify-content: space-between; margin-top: 30px; }
+        .nav-btn {
+            background: rgba(255,255,255,0.1);
+            padding: 15px 30px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #00d4ff;
+            transition: all 0.3s ease;
+        }
+        .nav-btn:hover { background: rgba(0,212,255,0.2); }
+        .toc {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .toc h2 { color: #00d4ff; margin-bottom: 15px; }
+        .toc ul { list-style: none; }
+        .toc li { margin: 8px 0; }
+        .toc a { color: #7b2cbf; text-decoration: none; }
+        .toc a:hover { color: #00d4ff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Deutsch-Jozsa Algorithm</h1>
+        <p class="subtitle">Complete Jupyter Notebook - All 38 Cells</p>
+        
+        <div class="toc">
+            <h2>Table of Contents</h2>
+            <ul>
+                <li><a href="#cell-1">Section 1: Numpy Basics (Cells 1-21)</a></li>
+                <li><a href="#cell-22">Section 2: Bit Shift Basics (Cells 22-25)</a></li>
+                <li><a href="#cell-26">Section 3: Deutsch-Jozsa Algorithm (Cells 26-38)</a></li>
+            </ul>
+        </div>
+
+        <div class="cell" id="cell-1">
+            <div class="cell-header markdown-header">Cell 1 [Markdown]</div>
+            <div class="markdown-cell">Numpy Basics</div>
+        </div>
+
+        <div class="cell" id="cell-2">
+            <div class="cell-header">Cell 2 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python">import numpy as np</code></pre>
+            </div>
+        </div>
+
+        <div class="cell" id="cell-3">
+            <div class="cell-header">Cell 3 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python"># |0&gt; and |1&gt;
+ket0 = np.array([[1],
+                 [0]], dtype=complex)
+
+ket1 = np.array([[0],
+                 [1]], dtype=complex)
+
+bra0 = ket0.conj().T
+bra1 = ket1.conj().T</code></pre>
+            </div>
+        </div>
+
+        <div class="cell" id="cell-4">
+            <div class="cell-header">Cell 4 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python">print(ket0)
+print(&quot;=&quot;*20)
+print(ket1)
+print(&quot;=&quot;*20)
+print(bra0)
+print(&quot;=&quot;*20)
+print(bra1)</code></pre>
+            </div>
+            <div class="cell-output">
+                <div class="cell-output-label">Output:</div>
+[[1.+0.j]
+ [0.+0.j]]
+====================
+[[0.+0.j]
+ [1.+0.j]]
+====================
+[[1.-0.j 0.-0.j]]
+====================
+[[0.-0.j 1.-0.j]]
+</div>
+        </div>
+
+        <div class="cell" id="cell-5">
+            <div class="cell-header">Cell 5 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python">psi = ket0 + ket1
+print(psi)</code></pre>
+            </div>
+            <div class="cell-output">
+                <div class="cell-output-label">Output:</div>
+[[1.+0.j]
+ [1.+0.j]]
+</div>
+        </div>
+
+        <div class="cell" id="cell-6">
+            <div class="cell-header">Cell 6 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python">psi = (1/np.sqrt(2)) * (ket0 + ket1)   # superposition
+print(psi)</code></pre>
+            </div>
+            <div class="cell-output">
+                <div class="cell-output-label">Output:</div>
+[[0.707+0.j]
+ [0.707+0.j]]
+</div>
+        </div>
+
+        <div class="cell" id="cell-7">
+            <div class="cell-header">Cell 7 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python">norm = np.linalg.norm(psi)
+print(norm)</code></pre>
+            </div>
+            <div class="cell-output">
+                <div class="cell-output-label">Output:</div>
+0.9999999999999999
+</div>
+        </div>
+
+        <div class="cell" id="cell-8">
+            <div class="cell-header">Cell 8 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python">psi_normalized = psi / np.linalg.norm(psi)
+print(psi_normalized)</code></pre>
+            </div>
+            <div class="cell-output">
+                <div class="cell-output-label">Output:</div>
+[[0.707+0.j]
+ [0.707+0.j]]
+</div>
+        </div>
+
+        <div class="cell" id="cell-9">
+            <div class="cell-header">Cell 9 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python">a = 1 + 2j
+b = 3 - 1j
+
+print(a + b)
+print(a * b)
+print(np.conj(a))   # complex conjugate</code></pre>
+            </div>
+            <div class="cell-output">
+                <div class="cell-output-label">Output:</div>
+(4+1j)
+(5+5j)
+(1-2j)
+</div>
+        </div>
+
+        <div class="cell" id="cell-10">
+            <div class="cell-header">Cell 10 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python">I = np.eye(2, dtype=complex)
+
+X = np.array([[0, 1],
+              [1, 0]], dtype=complex)
+
+Y = np.array([[0, -1j],
+              [1j,  0]], dtype=complex)
+
+Z = np.array([[1,  0],
+              [0, -1]], dtype=complex)
+
+H = (1/np.sqrt(2)) * np.array([[1,  1],
+                               [1, -1]], dtype=complex)
+
+print(I)
+print(&quot;=&quot;*20)
+print(X)
+print(&quot;=&quot;*20)
+print(Y)
+print(&quot;=&quot;*20)
+print(Z)
+print(&quot;=&quot;*20)
+print(H)
+print(&quot;=&quot;*20)</code></pre>
+            </div>
+            <div class="cell-output">
+                <div class="cell-output-label">Output:</div>
+[[1.+0.j 0.+0.j]
+ [0.+0.j 1.+0.j]]
+====================
+[[0.+0.j 1.+0.j]
+ [1.+0.j 0.+0.j]]
+====================
+[[ 0.+0.j -0.-1.j]
+ [ 0.+1.j  0.+0.j]]
+====================
+[[ 1.+0.j  0.+0.j]
+ [ 0.+0.j -1.+0.j]]
+====================
+[[ 0.707+0.j  0.707+0.j]
+ [ 0.707+0.j -0.707+0.j]]
+====================
+</div>
+        </div>
+
+        <div class="cell" id="cell-11">
+            <div class="cell-header">Cell 11 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python"># Apply Hadamard to |0&gt;
+psi = H @ ket0</code></pre>
+            </div>
+        </div>
+
+        <div class="cell" id="cell-12">
+            <div class="cell-header">Cell 12 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python">print(psi)</code></pre>
+            </div>
+            <div class="cell-output">
+                <div class="cell-output-label">Output:</div>
+[[0.707+0.j]
+ [0.707+0.j]]
+</div>
+        </div>
+
+        <div class="cell" id="cell-13">
+            <div class="cell-header">Cell 13 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python"># Apply X then H
+U = H @ X</code></pre>
+            </div>
+        </div>
+
+        <div class="cell" id="cell-14">
+            <div class="cell-header">Cell 14 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python">phi = ket0
+psi = H @ ket0
+
+inner = phi.conj().T @ psi #inner product of phi and psi
+outer = ket0 @ bra1        #outer peorudt of phi and bra1</code></pre>
+            </div>
+        </div>
+
+        <div class="cell" id="cell-15">
+            <div class="cell-header">Cell 15 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python">print(inner)
+print(outer)</code></pre>
+            </div>
+            <div class="cell-output">
+                <div class="cell-output-label">Output:</div>
+[[0.707+0.j]]
+[[0.+0.j 1.+0.j]
+ [0.+0.j 0.+0.j]]
+</div>
+        </div>
+
+        <div class="cell" id="cell-16">
+            <div class="cell-header">Cell 16 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python"># |00&gt; = |0&gt; ⊗ |0&gt;
+ket00 = np.kron(ket0, ket0)
+print(ket00)</code></pre>
+            </div>
+            <div class="cell-output">
+                <div class="cell-output-label">Output:</div>
+[[1.+0.j]
+ [0.+0.j]
+ [0.+0.j]
+ [0.+0.j]]
+</div>
+        </div>
+
+        <div class="cell" id="cell-17">
+            <div class="cell-header">Cell 17 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python">bell = (1/np.sqrt(2)) * (ket00 + np.kron(ket1, ket1))</code></pre>
+            </div>
+        </div>
+
+        <div class="cell" id="cell-18">
+            <div class="cell-header">Cell 18 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python">H1 = np.kron(H, I)   # H on qubit 1, I on qubit 2</code></pre>
+            </div>
+        </div>
+
+        <div class="cell" id="cell-19">
+            <div class="cell-header">Cell 19 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python">prob = np.abs(phi.conj().T @ psi)**2</code></pre>
+            </div>
+        </div>
+
+        <div class="cell" id="cell-20">
+            <div class="cell-header">Cell 20 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python">U = H
+is_unitary = np.allclose(U.conj().T @ U, I)
+print(is_unitary)</code></pre>
+            </div>
+            <div class="cell-output">
+                <div class="cell-output-label">Output:</div>
+True
+</div>
+        </div>
+
+        <div class="cell" id="cell-21">
+            <div class="cell-header">Cell 21 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python">vals, vecs = np.linalg.eig(Z)</code></pre>
+            </div>
+        </div>
+
+        <div class="cell" id="cell-22">
+            <div class="cell-header markdown-header">Cell 22 [Markdown]</div>
+            <div class="markdown-cell">Bit Shift Basics</div>
+        </div>
+
+        <div class="cell" id="cell-23">
+            <div class="cell-header">Cell 23 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python">z = 3           # binary: 011
+y = z &lt;&lt; 1
+print(y)
+
+x = 5           # binary: 101
+x &lt;&lt; 1          # 1010
+(x &lt;&lt; 1) | 0    # 1010  → 10
+#(x &lt;&lt; 1) | 1   # 1011  → 11</code></pre>
+            </div>
+            <div class="cell-output">
+                <div class="cell-output-label">Output:</div>
+6
+10</div>
+        </div>
+
+        <div class="cell" id="cell-24">
+            <div class="cell-header">Cell 24 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python">for x in range(4):
+    for y in (0, 1):
+        print(x, y, (x &lt;&lt; 1) | y)</code></pre>
+            </div>
+            <div class="cell-output">
+                <div class="cell-output-label">Output:</div>
+0 0 0
+0 1 1
+1 0 2
+1 1 3
+2 0 4
+2 1 5
+3 0 6
+3 1 7
+</div>
+        </div>
+
+        <div class="cell" id="cell-25">
+            <div class="cell-header">Cell 25 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python">print(&#x27;&#x27;&#x27;
+x  y  index
+0  0   0   # |00&gt;|0&gt;
+0  1   1   # |00&gt;|1&gt;
+1  0   2   # |01&gt;|0&gt;
+1  1   3   # |01&gt;|1&gt;
+2  0   4   # |10&gt;|0&gt;
+2  1   5   # |10&gt;|1&gt;
+3  0   6   # |11&gt;|0&gt;
+3  1   7   # |11&gt;|1&gt;
+&#x27;&#x27;&#x27;)</code></pre>
+            </div>
+            <div class="cell-output">
+                <div class="cell-output-label">Output:</div>
+
+x  y  index
+0  0   0   # |00&gt;|0&gt;
+0  1   1   # |00&gt;|1&gt;
+1  0   2   # |01&gt;|0&gt;
+1  1   3   # |01&gt;|1&gt;
+2  0   4   # |10&gt;|0&gt;
+2  1   5   # |10&gt;|1&gt;
+3  0   6   # |11&gt;|0&gt;
+3  1   7   # |11&gt;|1&gt;
+
+</div>
+        </div>
+
+        <div class="cell" id="cell-26">
+            <div class="cell-header markdown-header">Cell 26 [Markdown]</div>
+            <div class="markdown-cell">Deutsch–Jozsa Algorithm Tutorial</div>
+        </div>
+
+        <div class="cell" id="cell-27">
+            <div class="cell-header">Cell 27 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python">import numpy as np
+np.set_printoptions(precision=3, suppress=True)</code></pre>
+            </div>
+        </div>
+
+        <div class="cell" id="cell-28">
+            <div class="cell-header">Cell 28 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python"># Single-qubit gates
+I = np.eye(2, dtype=complex)
+
+H = (1/np.sqrt(2)) * np.array([
+    [1,  1],
+    [1, -1]
+], dtype=complex)
+
+X = np.array([
+    [0, 1],
+    [1, 0]
+], dtype=complex)
+</code></pre>
+            </div>
+        </div>
+
+        <div class="cell" id="cell-29">
+            <div class="cell-header">Cell 29 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python">I</code></pre>
+            </div>
+            <div class="cell-output">
+                <div class="cell-output-label">Output:</div>
+array([[1.+0.j, 0.+0.j],
+       [0.+0.j, 1.+0.j]])</div>
+        </div>
+
+        <div class="cell" id="cell-30">
+            <div class="cell-header">Cell 30 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python">H</code></pre>
+            </div>
+            <div class="cell-output">
+                <div class="cell-output-label">Output:</div>
+array([[ 0.707+0.j,  0.707+0.j],
+       [ 0.707+0.j, -0.707+0.j]])</div>
+        </div>
+
+        <div class="cell" id="cell-31">
+            <div class="cell-header">Cell 31 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python">X</code></pre>
+            </div>
+            <div class="cell-output">
+                <div class="cell-output-label">Output:</div>
+array([[0.+0.j, 1.+0.j],
+       [1.+0.j, 0.+0.j]])</div>
+        </div>
+
+        <div class="cell" id="cell-32">
+            <div class="cell-header">Cell 32 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python">def kron_all(matrices):
+    &quot;&quot;&quot;
+    Compute Kronecker product of a list of matrices.
+    Used to build multi-qubit operators like H^{⊗n}.
+    &quot;&quot;&quot;
+    result = np.array([[1]], dtype=complex)
+    for m in matrices:
+        result = np.kron(result, m)
+    return result
+</code></pre>
+            </div>
+        </div>
+
+        <div class="cell" id="cell-33">
+            <div class="cell-header">Cell 33 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python">def H_n(n):
+    &quot;&quot;&quot;
+    Hadamard on n qubits: H ⊗ H ⊗ ... ⊗ H
+    &quot;&quot;&quot;
+    return kron_all([H] * n)
+</code></pre>
+            </div>
+        </div>
+
+        <div class="cell" id="cell-34">
+            <div class="cell-header">Cell 34 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python">def oracle_Uf(n, f):
+    &quot;&quot;&quot;
+    Build the oracle matrix Uf for n input qubits + 1 ancilla qubit.
+
+    Basis ordering:
+      |x&gt;|y&gt;  → index = (x &lt;&lt; 1) | y
+    &quot;&quot;&quot;
+    dim = 2 ** (n + 1)
+    U = np.zeros((dim, dim), dtype=complex)
+
+    print(&quot;\n[Oracle Construction]&quot;)
+    for x in range(2**n):
+        fx = int(f(x)) &amp; 1
+        print(f&quot;  f({format(x, f&#x27;0{n}b&#x27;)}) = {fx}&quot;)
+        for y in (0, 1):
+            in_idx  = (x &lt;&lt; 1) | y
+            out_idx = (x &lt;&lt; 1) | (y ^ fx)
+            U[out_idx, in_idx] = 1.0
+
+    return U
+</code></pre>
+            </div>
+        </div>
+
+        <div class="cell" id="cell-35">
+            <div class="cell-header">Cell 35 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python">def deutsch_jozsa(n, f):
+    &quot;&quot;&quot;
+    Run Deutsch–Jozsa algorithm for n input qubits.
+    Prints intermediate states for learning.
+    &quot;&quot;&quot;
+
+    print(&quot;\n&quot; + &quot;=&quot; * 65)
+    print(f&quot;Running Deutsch–Jozsa for n = {n}&quot;)
+    print(&quot;=&quot; * 65)
+
+    dim = 2 ** (n + 1)
+
+    # ---------------------------------------------------
+    # Step 1: Initialize |0^n&gt;|1&gt;
+    # ---------------------------------------------------
+    state = np.zeros(dim, dtype=complex)
+    state[1] = 1.0  # |x=0&gt;|y=1&gt;
+
+    print(&quot;\nStep 1: Initial state |0...0&gt;|1&gt;&quot;)
+    print(state)
+
+    # ---------------------------------------------------
+    # Step 2: Apply H on all qubits
+    # Result: |+...+&gt;|-&gt;
+    # ---------------------------------------------------
+    print(&quot;\nStep 2: Apply H^{⊗(n+1)}&quot;)
+    state = H_n(n + 1) @ state
+    print(&quot;State after Hadamards:&quot;)
+    print(state)
+
+    # ---------------------------------------------------
+    # Step 3: Apply oracle U_f
+    # Phase kickback occurs here
+    # ---------------------------------------------------
+    print(&quot;\nStep 3: Apply oracle U_f&quot;)
+    U = oracle_Uf(n, f)
+    state = U @ state
+    print(&quot;State after oracle:&quot;)
+    print(state)
+
+    # ---------------------------------------------------
+    # Step 4: Apply H^{⊗n} on input register only
+    # ---------------------------------------------------
+    print(&quot;\nStep 4: Apply H^{⊗n} on input qubits&quot;)
+    H_input = kron_all([H]*n + [I])
+    state = H_input @ state
+    print(&quot;Final state:&quot;)
+    print(state)
+
+    # ---------------------------------------------------
+    # Step 5: Measure input register probabilities
+    # ---------------------------------------------------
+    print(&quot;\nStep 5: Measure input register (ignore ancilla)&quot;)
+    probs = {}
+    for x in range(2**n):
+        amp0 = state[(x &lt;&lt; 1) | 0]
+        amp1 = state[(x &lt;&lt; 1) | 1]
+        p = abs(amp0)**2 + abs(amp1)**2
+        if p &gt; 1e-10:
+            probs[format(x, f&quot;0{n}b&quot;)] = p
+
+    for k, v in probs.items():
+        print(f&quot;  P(|{k}&gt;) = {v:.6f}&quot;)
+
+    # ---------------------------------------------------
+    # Step 6: Deutsch–Jozsa decision
+    # ---------------------------------------------------
+    if probs.get(&quot;0&quot;*n, 0.0) &gt; 1 - 1e-9:
+        decision = &quot;CONSTANT&quot;
+    else:
+        decision = &quot;BALANCED&quot;
+
+    print(&quot;\nDeutsch–Jozsa Decision:&quot;, decision)
+    return probs, decision
+</code></pre>
+            </div>
+        </div>
+
+        <div class="cell" id="cell-36">
+            <div class="cell-header">Cell 36 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python">def f_constant(x):
+    return 0
+
+deutsch_jozsa(n=3, f=f_constant)
+</code></pre>
+            </div>
+            <div class="cell-output">
+                <div class="cell-output-label">Output:</div>
+
+=================================================================
+Running Deutsch–Jozsa for n = 3
+=================================================================
+
+Step 1: Initial state |0...0&gt;|1&gt;
+[0.+0.j 1.+0.j 0.+0.j 0.+0.j 0.+0.j 0.+0.j 0.+0.j 0.+0.j 0.+0.j 0.+0.j
+ 0.+0.j 0.+0.j 0.+0.j 0.+0.j 0.+0.j 0.+0.j]
+
+Step 2: Apply H^{⊗(n+1)}
+State after Hadamards:
+[ 0.25+0.j -0.25+0.j  0.25+0.j -0.25+0.j  0.25+0.j -0.25+0.j  0.25+0.j
+ -0.25+0.j  0.25+0.j -0.25+0.j  0.25+0.j -0.25+0.j  0.25+0.j -0.25+0.j
+  0.25+0.j -0.25+0.j]
+
+Step 3: Apply oracle U_f
+
+[Oracle Construction]
+  f(000) = 0
+  f(001) = 0
+  f(010) = 0
+  f(011) = 0
+  f(100) = 0
+  f(101) = 0
+  f(110) = 0
+  f(111) = 0
+State after oracle:
+[ 0.25+0.j -0.25+0.j  0.25+0.j -0.25+0.j  0.25+0.j -0.25+0.j  0.25+0.j
+ -0.25+0.j  0.25+0.j -0.25+0.j  0.25+0.j -0.25+0.j  0.25+0.j -0.25+0.j
+  0.25+0.j -0.25+0.j]
+
+Step 4: Apply H^{⊗n} on input qubits
+Final state:
+[ 0.707+0.j -0.707+0.j  0.   +0.j -0.   +0.j  0.   +0.j -0.   +0.j
+ -0.   +0.j  0.   +0.j  0.   +0.j -0.   +0.j -0.   +0.j  0.   +0.j
+ -0.   +0.j  0.   +0.j  0.   +0.j -0.   +0.j]
+
+Step 5: Measure input register (ignore ancilla)
+  P(|000&gt;) = 1.000000
+
+Deutsch–Jozsa Decision: CONSTANT
+({&#x27;000&#x27;: np.float64(0.9999999999999989)}, &#x27;CONSTANT&#x27;)</div>
+        </div>
+
+        <div class="cell" id="cell-37">
+            <div class="cell-header">Cell 37 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python">def f_balanced(x):
+    return x &amp; 1
+
+deutsch_jozsa(n=3, f=f_balanced)
+</code></pre>
+            </div>
+            <div class="cell-output">
+                <div class="cell-output-label">Output:</div>
+
+=================================================================
+Running Deutsch–Jozsa for n = 3
+=================================================================
+
+Step 1: Initial state |0...0&gt;|1&gt;
+[0.+0.j 1.+0.j 0.+0.j 0.+0.j 0.+0.j 0.+0.j 0.+0.j 0.+0.j 0.+0.j 0.+0.j
+ 0.+0.j 0.+0.j 0.+0.j 0.+0.j 0.+0.j 0.+0.j]
+
+Step 2: Apply H^{⊗(n+1)}
+State after Hadamards:
+[ 0.25+0.j -0.25+0.j  0.25+0.j -0.25+0.j  0.25+0.j -0.25+0.j  0.25+0.j
+ -0.25+0.j  0.25+0.j -0.25+0.j  0.25+0.j -0.25+0.j  0.25+0.j -0.25+0.j
+  0.25+0.j -0.25+0.j]
+
+Step 3: Apply oracle U_f
+
+[Oracle Construction]
+  f(000) = 0
+  f(001) = 1
+  f(010) = 0
+  f(011) = 1
+  f(100) = 0
+  f(101) = 1
+  f(110) = 0
+  f(111) = 1
+State after oracle:
+[ 0.25+0.j -0.25+0.j -0.25+0.j  0.25+0.j  0.25+0.j -0.25+0.j -0.25+0.j
+  0.25+0.j  0.25+0.j -0.25+0.j -0.25+0.j  0.25+0.j  0.25+0.j -0.25+0.j
+ -0.25+0.j  0.25+0.j]
+
+Step 4: Apply H^{⊗n} on input qubits
+Final state:
+[ 0.   +0.j -0.   +0.j  0.707+0.j -0.707+0.j -0.   +0.j  0.   +0.j
+  0.   +0.j -0.   +0.j -0.   +0.j  0.   +0.j  0.   +0.j -0.   +0.j
+  0.   +0.j -0.   +0.j -0.   +0.j  0.   +0.j]
+
+Step 5: Measure input register (ignore ancilla)
+  P(|001&gt;) = 1.000000
+
+Deutsch–Jozsa Decision: BALANCED
+({&#x27;001&#x27;: np.float64(0.9999999999999989)}, &#x27;BALANCED&#x27;)</div>
+        </div>
+
+        <div class="cell" id="cell-38">
+            <div class="cell-header">Cell 38 [Code]</div>
+            <div class="cell-content">
+                <pre><code class="language-python"></code></pre>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <a href="01_quantum_states/01_basis_states.html" class="nav-btn">← Interactive Visualizations</a>
+            <a href="06_algorithm/01_deutsch_jozsa.html" class="nav-btn">Algorithm Deep Dive →</a>
+        </div>
+    </div>
+    <script>hljs.highlightAll();</script>
+</body>
+</html>

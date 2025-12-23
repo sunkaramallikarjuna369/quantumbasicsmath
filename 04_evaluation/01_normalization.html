@@ -127,7 +127,57 @@
         }
         .norm-valid { background: rgba(0,255,0,0.2); border: 2px solid #0f0; }
         .norm-invalid { background: rgba(255,0,0,0.2); border: 2px solid #f00; }
-    </style>
+    
+        .notebook-cell {
+            background: #282c34;
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .cell-label {
+            background: rgba(0,212,255,0.2);
+            padding: 8px 15px;
+            font-size: 0.85em;
+            color: #00d4ff;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .notebook-cell pre {
+            margin: 0;
+            padding: 15px;
+            background: #282c34;
+            overflow-x: auto;
+        }
+        .notebook-cell code {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .cell-output {
+            background: rgba(0,0,0,0.4);
+            padding: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .cell-output pre {
+            background: transparent;
+            color: #98c379;
+            white-space: pre-wrap;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            margin: 0;
+            padding: 0;
+        }
+        .output-label {
+            color: #e06c75;
+            font-size: 0.8em;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+</style>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -229,39 +279,34 @@
             </div>
         </div>
 
+        
         <div class="section">
-            <h2>Python Implementation</h2>
-            <div class="code-block">
-<span class="keyword">import</span> numpy <span class="keyword">as</span> np
+            <h2>Notebook Code (Exact Cells)</h2>
 
-<span class="comment"># Define an unnormalized state</span>
-psi_unnorm = np.array([[<span class="number">1</span>], [<span class="number">1</span>]], dtype=<span class="keyword">complex</span>)
-
-<span class="comment"># Calculate the norm</span>
-norm = np.linalg.norm(psi_unnorm)
-<span class="function">print</span>(<span class="string">"Norm before:"</span>, norm)  <span class="comment"># Output: 1.414... (√2)</span>
-
-<span class="comment"># Normalize the state</span>
-psi = psi_unnorm / norm
-<span class="function">print</span>(<span class="string">"Normalized state:"</span>, psi.flatten())
-<span class="comment"># Output: [0.707 0.707]</span>
-
-<span class="comment"># Verify normalization</span>
-norm_after = np.linalg.norm(psi)
-<span class="function">print</span>(<span class="string">"Norm after:"</span>, norm_after)  <span class="comment"># Output: 1.0</span>
-
-<span class="comment"># Calculate probabilities using Born rule</span>
-prob_0 = np.abs(psi[<span class="number">0</span>])**<span class="number">2</span>
-prob_1 = np.abs(psi[<span class="number">1</span>])**<span class="number">2</span>
-<span class="function">print</span>(f<span class="string">"P(0) = {prob_0[0]:.4f}"</span>)  <span class="comment"># Output: 0.5</span>
-<span class="function">print</span>(f<span class="string">"P(1) = {prob_1[0]:.4f}"</span>)  <span class="comment"># Output: 0.5</span>
-<span class="function">print</span>(f<span class="string">"Total = {prob_0[0] + prob_1[0]:.4f}"</span>)  <span class="comment"># Output: 1.0</span>
-
-<span class="comment"># Complex amplitude example</span>
-psi_complex = np.array([[(1+1j)/2], [(1-1j)/2]], dtype=<span class="keyword">complex</span>)
-<span class="function">print</span>(<span class="string">"Complex state:"</span>, psi_complex.flatten())
-<span class="function">print</span>(<span class="string">"P(0) ="</span>, np.abs(psi_complex[<span class="number">0</span>])**<span class="number">2</span>)  <span class="comment"># 0.5</span>
-<span class="function">print</span>(<span class="string">"P(1) ="</span>, np.abs(psi_complex[<span class="number">1</span>])**<span class="number">2</span>)  <span class="comment"># 0.5</span>
+            <div class="notebook-cell">
+                <div class="cell-label">Cell 7</div>
+                <pre><code class="language-python">norm = np.linalg.norm(psi)
+print(norm)</code></pre>
+                <div class="cell-output">
+                    <div class="output-label">Output:</div>
+                    <pre>0.9999999999999999
+</pre>
+                </div>
+            </div>
+            <div class="notebook-cell">
+                <div class="cell-label">Cell 8</div>
+                <pre><code class="language-python">psi_normalized = psi / np.linalg.norm(psi)
+print(psi_normalized)</code></pre>
+                <div class="cell-output">
+                    <div class="output-label">Output:</div>
+                    <pre>[[0.707+0.j]
+ [0.707+0.j]]
+</pre>
+                </div>
+            </div>
+            <div class="notebook-cell">
+                <div class="cell-label">Cell 19</div>
+                <pre><code class="language-python">prob = np.abs(phi.conj().T @ psi)**2</code></pre>
             </div>
         </div>
 
@@ -629,5 +674,7 @@ psi_complex = np.array([[(1+1j)/2], [(1-1j)/2]], dtype=<span class="keyword">com
         drawBeforeNorm();
         drawAfterNorm();
     </script>
+
+    <script>hljs.highlightAll();</script>
 </body>
 </html>

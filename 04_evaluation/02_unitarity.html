@@ -117,7 +117,57 @@
         }
         .check-pass { background: rgba(0,255,0,0.2); border: 2px solid #0f0; }
         .check-fail { background: rgba(255,0,0,0.2); border: 2px solid #f00; }
-    </style>
+    
+        .notebook-cell {
+            background: #282c34;
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .cell-label {
+            background: rgba(0,212,255,0.2);
+            padding: 8px 15px;
+            font-size: 0.85em;
+            color: #00d4ff;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .notebook-cell pre {
+            margin: 0;
+            padding: 15px;
+            background: #282c34;
+            overflow-x: auto;
+        }
+        .notebook-cell code {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .cell-output {
+            background: rgba(0,0,0,0.4);
+            padding: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .cell-output pre {
+            background: transparent;
+            color: #98c379;
+            white-space: pre-wrap;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            margin: 0;
+            padding: 0;
+        }
+        .output-label {
+            color: #e06c75;
+            font-size: 0.8em;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+</style>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -240,46 +290,20 @@
             </div>
         </div>
 
+        
         <div class="section">
-            <h2>Python Implementation</h2>
-            <div class="code-block">
-<span class="keyword">import</span> numpy <span class="keyword">as</span> np
+            <h2>Notebook Code (Exact Cells)</h2>
 
-<span class="comment"># Define gates</span>
-H = (<span class="number">1</span>/np.sqrt(<span class="number">2</span>)) * np.array([[<span class="number">1</span>, <span class="number">1</span>], [<span class="number">1</span>, -<span class="number">1</span>]], dtype=<span class="keyword">complex</span>)
-X = np.array([[<span class="number">0</span>, <span class="number">1</span>], [<span class="number">1</span>, <span class="number">0</span>]], dtype=<span class="keyword">complex</span>)
-Y = np.array([[<span class="number">0</span>, -<span class="number">1j</span>], [<span class="number">1j</span>, <span class="number">0</span>]], dtype=<span class="keyword">complex</span>)
-Z = np.array([[<span class="number">1</span>, <span class="number">0</span>], [<span class="number">0</span>, -<span class="number">1</span>]], dtype=<span class="keyword">complex</span>)
-I = np.eye(<span class="number">2</span>, dtype=<span class="keyword">complex</span>)
-
-<span class="keyword">def</span> <span class="function">is_unitary</span>(U):
-    <span class="string">"""Check if matrix U is unitary: U†U = I"""</span>
-    product = U.conj().T @ U
-    <span class="keyword">return</span> np.allclose(product, I)
-
-<span class="comment"># Verify all gates are unitary</span>
-<span class="function">print</span>(<span class="string">"H is unitary:"</span>, is_unitary(H))   <span class="comment"># True</span>
-<span class="function">print</span>(<span class="string">"X is unitary:"</span>, is_unitary(X))   <span class="comment"># True</span>
-<span class="function">print</span>(<span class="string">"Y is unitary:"</span>, is_unitary(Y))   <span class="comment"># True</span>
-<span class="function">print</span>(<span class="string">"Z is unitary:"</span>, is_unitary(Z))   <span class="comment"># True</span>
-
-<span class="comment"># Show U†U = I for Hadamard</span>
-<span class="function">print</span>(<span class="string">"H†H =\n"</span>, H.conj().T @ H)
-<span class="comment"># Output: [[1 0]
-#          [0 1]]</span>
-
-<span class="comment"># Verify probability preservation</span>
-ket0 = np.array([[<span class="number">1</span>], [<span class="number">0</span>]], dtype=<span class="keyword">complex</span>)
-psi = H @ ket0  <span class="comment"># Apply H to |0⟩</span>
-
-norm_before = np.linalg.norm(ket0)
-norm_after = np.linalg.norm(psi)
-<span class="function">print</span>(f<span class="string">"Norm before: {norm_before}"</span>)  <span class="comment"># 1.0</span>
-<span class="function">print</span>(f<span class="string">"Norm after: {norm_after}"</span>)    <span class="comment"># 1.0</span>
-
-<span class="comment"># Verify reversibility: H⁻¹ = H†</span>
-H_inv = H.conj().T
-<span class="function">print</span>(<span class="string">"H⁻¹ = H†?"</span>, np.allclose(H_inv, H))  <span class="comment"># True (H is Hermitian)</span>
+            <div class="notebook-cell">
+                <div class="cell-label">Cell 20</div>
+                <pre><code class="language-python">U = H
+is_unitary = np.allclose(U.conj().T @ U, I)
+print(is_unitary)</code></pre>
+                <div class="cell-output">
+                    <div class="output-label">Output:</div>
+                    <pre>True
+</pre>
+                </div>
             </div>
         </div>
 
@@ -652,5 +676,7 @@ H_inv = H.conj().T
         drawMeasurement();
         checkGate('H');
     </script>
+
+    <script>hljs.highlightAll();</script>
 </body>
 </html>

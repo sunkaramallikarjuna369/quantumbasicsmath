@@ -135,7 +135,57 @@
             margin: 20px 0;
             text-align: center;
         }
-    </style>
+    
+        .notebook-cell {
+            background: #282c34;
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .cell-label {
+            background: rgba(0,212,255,0.2);
+            padding: 8px 15px;
+            font-size: 0.85em;
+            color: #00d4ff;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .notebook-cell pre {
+            margin: 0;
+            padding: 15px;
+            background: #282c34;
+            overflow-x: auto;
+        }
+        .notebook-cell code {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .cell-output {
+            background: rgba(0,0,0,0.4);
+            padding: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .cell-output pre {
+            background: transparent;
+            color: #98c379;
+            white-space: pre-wrap;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            margin: 0;
+            padding: 0;
+        }
+        .output-label {
+            color: #e06c75;
+            font-size: 0.8em;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+</style>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -307,44 +357,31 @@
             </div>
         </div>
 
+        
         <div class="section">
-            <h2>Python Implementation</h2>
-            <div class="code-block">
-<span class="keyword">import</span> numpy <span class="keyword">as</span> np
+            <h2>Notebook Code (Exact Cells)</h2>
 
-<span class="comment"># Define single-qubit states</span>
-ket0 = np.array([[<span class="number">1</span>], [<span class="number">0</span>]], dtype=<span class="keyword">complex</span>)
-ket1 = np.array([[<span class="number">0</span>], [<span class="number">1</span>]], dtype=<span class="keyword">complex</span>)
-
-<span class="comment"># Tensor product using np.kron()</span>
-ket00 = np.kron(ket0, ket0)  <span class="comment"># |00⟩</span>
-ket01 = np.kron(ket0, ket1)  <span class="comment"># |01⟩</span>
-ket10 = np.kron(ket1, ket0)  <span class="comment"># |10⟩</span>
-ket11 = np.kron(ket1, ket1)  <span class="comment"># |11⟩</span>
-
-<span class="function">print</span>(<span class="string">"|00⟩ ="</span>, ket00.flatten())
-<span class="comment"># Output: [1 0 0 0]</span>
-
-<span class="function">print</span>(<span class="string">"|11⟩ ="</span>, ket11.flatten())
-<span class="comment"># Output: [0 0 0 1]</span>
-
-<span class="comment"># Create Bell state</span>
-bell = (<span class="number">1</span>/np.sqrt(<span class="number">2</span>)) * (ket00 + ket11)
-<span class="function">print</span>(<span class="string">"Bell state ="</span>, bell.flatten())
-<span class="comment"># Output: [0.707 0 0 0.707]</span>
-
-<span class="comment"># Tensor product of operators</span>
-I = np.eye(<span class="number">2</span>, dtype=<span class="keyword">complex</span>)
-H = (<span class="number">1</span>/np.sqrt(<span class="number">2</span>)) * np.array([[<span class="number">1</span>, <span class="number">1</span>], [<span class="number">1</span>, -<span class="number">1</span>]], dtype=<span class="keyword">complex</span>)
-
-<span class="comment"># H on qubit 1, I on qubit 2</span>
-H1 = np.kron(H, I)
-<span class="function">print</span>(<span class="string">"H⊗I shape:"</span>, H1.shape)  <span class="comment"># (4, 4)</span>
-
-<span class="comment"># Apply H⊗I to |00⟩</span>
-result = H1 @ ket00
-<span class="function">print</span>(<span class="string">"(H⊗I)|00⟩ ="</span>, result.flatten())
-<span class="comment"># Output: [0.707 0 0.707 0] = (|00⟩+|10⟩)/√2</span>
+            <div class="notebook-cell">
+                <div class="cell-label">Cell 16</div>
+                <pre><code class="language-python"># |00&gt; = |0&gt; ⊗ |0&gt;
+ket00 = np.kron(ket0, ket0)
+print(ket00)</code></pre>
+                <div class="cell-output">
+                    <div class="output-label">Output:</div>
+                    <pre>[[1.+0.j]
+ [0.+0.j]
+ [0.+0.j]
+ [0.+0.j]]
+</pre>
+                </div>
+            </div>
+            <div class="notebook-cell">
+                <div class="cell-label">Cell 17</div>
+                <pre><code class="language-python">bell = (1/np.sqrt(2)) * (ket00 + np.kron(ket1, ket1))</code></pre>
+            </div>
+            <div class="notebook-cell">
+                <div class="cell-label">Cell 18</div>
+                <pre><code class="language-python">H1 = np.kron(H, I)   # H on qubit 1, I on qubit 2</code></pre>
             </div>
         </div>
 
@@ -638,5 +675,7 @@ result = H1 @ ket00
         drawOperatorTensor('HICanvas', 'HI');
         drawOperatorTensor('IHCanvas', 'IH');
     </script>
+
+    <script>hljs.highlightAll();</script>
 </body>
 </html>
